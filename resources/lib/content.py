@@ -4,6 +4,10 @@
 import urllib2, simplejson, parse, cache, re, xbmcaddon, html, xbmc
 from BeautifulSoup import BeautifulSoup
 
+import thread
+import threading
+from time import sleep
+
 BASE_URL = 'https://noovo.ca'
 AZ_URL = 'http://zonevideo.api.telequebec.tv/data/v1/[YourApiKey]/Az'
 DOSSIERS_URL = 'http://zonevideo.api.telequebec.tv/data/v1/[YourApiKey]/folders'
@@ -16,6 +20,15 @@ LABEL = 'label'
 FILTRES = '{"content":{"genreId":"","mediaBundleId":-1},"show":{"' + SEASON + '":"","' + EPISODE + '":"","' + LABEL + '":""},"fullNameItems":[],"sourceId":""}'
 INTEGRAL = 'Integral'
 
+# A simple task to do to each response object
+def do_something(response):
+    print response.url
+
+def threaded_function(arg):
+    for i in range(arg):
+        print "running"
+        sleep(1)
+
 def u(data):
     return data.encode("utf-8")
 
@@ -23,9 +36,28 @@ def correctEmissionPageURL(url):
     if url[-3:] == ".ca":
         url = url + "/"
     return url
+
+
+num_threads = 0
     
+def MyThread1(arg):
+    global num_threads
+    num_threads += 1
+    print "arg" + str(arg)
+    cache.get_cached_content(correctEmissionPageURL(arg))
+    num_threads -= 1
+        
 def getDescription(url):
     log(url) 
+    
+    #thread = Thread(target = threaded_function, args = (10, ))
+    #thread.start()
+    #thread.join()
+    
+    #thread.start_new_thread(MyThread1, (url, ))
+    
+    print "next...exiting"
+    
     return "NULL"
     try:
 
@@ -132,6 +164,7 @@ def loadEmission(filtres):
 
     
 def dictOfGenres(filtres):
+
     liste = []
     
     data = cache.get_cached_content(BASE_URL + "/emissions")
@@ -170,6 +203,9 @@ def dictOfGenres(filtres):
         item['filtres']['content']['genreId'] = item['genreId']
 
     log(liste)
+        
+    while num_threads > 0:
+        pass
         
     return liste
 
