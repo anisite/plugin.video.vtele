@@ -20,17 +20,21 @@ THEPLATFORM_CONTENT_URL = "http://c.brightcove.com/services/mobile/streaming/ind
 __handle__ = int(sys.argv[1])
 
 def ajouterItemAuMenu(items):
-    #xbmcplugin.addSortMethod(__handle__, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
-    #xbmcplugin.addSortMethod(__handle__, xbmcplugin.SORT_METHOD_DATE)
-    
     for item in items:
         if item['isDir'] == True:
             ajouterRepertoire(item)
+            #xbmc.executebuiltin('Container.SetViewMode(512)') # "Info-wall" view. 
             
         else:
             ajouterVideo(item)
-            xbmc.executebuiltin('Container.SetViewMode('+str(xbmcplugin.SORT_METHOD_DATE)+')')
+            #xbmc.executebuiltin('Container.SetViewMode('+str(xbmcplugin.SORT_METHOD_DATE)+')')
             #xbmc.executebuiltin('Container.SetSortDirection(0)')
+
+    if items:
+        if items[0]['forceSort']  :
+            xbmcplugin.addSortMethod(__handle__, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
+            xbmcplugin.addSortMethod(__handle__, xbmcplugin.SORT_METHOD_DATE)
+
 
 
 
@@ -89,7 +93,7 @@ def ajouterVideo(show):
     url_info = 'none'
     finDisponibilite = show['endDateTxt']
 
-    resume = "" #remove_any_html_tags(show['resume'] +'[CR][CR]' + finDisponibilite)
+    resume = show['resume'] #remove_any_html_tags(show['resume'] +'[CR][CR]' + finDisponibilite)
     duree = show['duree']
     fanart = show['fanart']
     sourceUrl = show['sourceUrl']
@@ -101,11 +105,11 @@ def ajouterVideo(show):
     is_it_ok = True
     entry_url = sys.argv[0]+"?url="+urllib.quote_plus(the_url)+"&sourceUrl="+urllib.quote_plus(sourceUrl)
 
-    if resume != '':
-        if ADDON.getSetting('EmissionNameInPlotEnabled') == 'true':
-            resume = '[B]'+name.lstrip()+'[/B]'+'[CR]'+resume.lstrip() 
-    else:
-        resume = name.lstrip()
+    #if resume != '':
+    #    if ADDON.getSetting('EmissionNameInPlotEnabled') == 'true':
+    #        resume = '[B]'+name.lstrip()+'[/B]'+'[CR]'+resume.lstrip() 
+    #else:
+    #    resume = name.lstrip()
 
     liz = xbmcgui.ListItem(\
         remove_any_html_tags(name), iconImage=ADDON_IMAGES_BASEPATH+"default-video.png", thumbnailImage=iconimage)
