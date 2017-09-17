@@ -10,10 +10,12 @@
 #
 
 import sys,urllib, xbmcgui, xbmcplugin, xbmcaddon,re,cache, simplejson, xbmc
+from BeautifulSoup import BeautifulSoup
 
 ADDON = xbmcaddon.Addon()
 ADDON_IMAGES_BASEPATH = ADDON.getAddonInfo('path')+'/resources/media/images/'
 ADDON_FANART = ADDON.getAddonInfo('path')+'/fanart.jpg'
+THEPLATFORM_CONTENT_URL = "http://c.brightcove.com/services/mobile/streaming/index/master.m3u8?pubId=618566855001&videoId="
 
 __handle__ = int(sys.argv[1])
 
@@ -96,8 +98,6 @@ def ajouterVideo(show):
     episode = show['episodeNo']
     saison = show['seasonNo']
     
-
-
     is_it_ok = True
     entry_url = sys.argv[0]+"?url="+urllib.quote_plus(the_url)+"&sourceUrl="+urllib.quote_plus(sourceUrl)
 
@@ -138,6 +138,8 @@ def jouer_video(source_url):
     log("--media_uid--")
     log(source_url)
     
+    data = cache.get_cached_content(source_url)
+    
     ## Obtenir JSON avec liens RTMP du playlistService
     #video_json = simplejson.loads(\
     #    cache.get_cached_content(\
@@ -153,12 +155,20 @@ def jouer_video(source_url):
     ## Cherche le stream de meilleure qualité
     #uri = obtenirMeilleurStream(m3u8_pl)   
 
+    soup = BeautifulSoup(data, convertEntities=BeautifulSoup.HTML_ENTITIES)
+    video = soup.find("video", { "id" : "videoPlayer" })
+    
+    log("video")
+    log(video)
+    
+    uri = THEPLATFORM_CONTENT_URL + video['data-video-id']
+    
     # lance le stream
     if uri:
         item = xbmcgui.ListItem(\
-            video_json['title'],\
-            iconImage=video_json['imageUrl'],\
-            thumbnailImage=play_list_item['thumbnailImageUrl'], path=uri)
+            "Titre",\
+            iconImage=None,\
+            thumbnailImage=None, path=uri)
         play_item = xbmcgui.ListItem(path=uri)
         xbmcplugin.setResolvedUrl(__handle__,True, item)
     else:
