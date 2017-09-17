@@ -18,8 +18,8 @@ ADDON_FANART = ADDON.getAddonInfo('path')+'/fanart.jpg'
 __handle__ = int(sys.argv[1])
 
 def ajouterItemAuMenu(items):
-    xbmcplugin.addSortMethod(__handle__, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
-    xbmcplugin.addSortMethod(__handle__, xbmcplugin.SORT_METHOD_DATE)
+    #xbmcplugin.addSortMethod(__handle__, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
+    #xbmcplugin.addSortMethod(__handle__, xbmcplugin.SORT_METHOD_DATE)
     
     for item in items:
         if item['isDir'] == True:
@@ -28,13 +28,13 @@ def ajouterItemAuMenu(items):
         else:
             ajouterVideo(item)
             xbmc.executebuiltin('Container.SetViewMode('+str(xbmcplugin.SORT_METHOD_DATE)+')')
-            xbmc.executebuiltin('Container.SetSortDirection(0)')
+            #xbmc.executebuiltin('Container.SetSortDirection(0)')
 
 
 
 def ajouterRepertoire(show):
-    print "--Show image--"
-    print show
+    #print "--Show image--"
+    #print show
     
     nom = show['nom']
     url = show['url']
@@ -87,11 +87,11 @@ def ajouterVideo(show):
     url_info = 'none'
     finDisponibilite = show['endDateTxt']
 
-    resume = remove_any_html_tags(show['resume'] +'[CR][CR]' + finDisponibilite)
+    resume = "" #remove_any_html_tags(show['resume'] +'[CR][CR]' + finDisponibilite)
     duree = show['duree']
     fanart = show['fanart']
-    sourceId = show['sourceId']
-    annee = show['startDate'][:4]
+    sourceUrl = show['sourceUrl']
+    annee = "" #show['startDate'][:4]
     premiere = show['startDate']
     episode = show['episodeNo']
     saison = show['seasonNo']
@@ -99,7 +99,7 @@ def ajouterVideo(show):
 
 
     is_it_ok = True
-    entry_url = sys.argv[0]+"?url="+urllib.quote_plus(the_url)+"&sourceId="+(sourceId)
+    entry_url = sys.argv[0]+"?url="+urllib.quote_plus(the_url)+"&sourceUrl="+urllib.quote_plus(sourceUrl)
 
     if resume != '':
         if ADDON.getSetting('EmissionNameInPlotEnabled') == 'true':
@@ -130,24 +130,28 @@ def ajouterVideo(show):
 RE_HTML_TAGS = re.compile(r'<[^>]+>')
 RE_AFTER_CR = re.compile(r'\n.*')
 
-def jouer_video(media_uid):
+def jouer_video(source_url):
     """ function docstring """
     check_for_internet_connection()
+    uri = None
     
-    # Obtenir JSON avec liens RTMP du playlistService
-    video_json = simplejson.loads(\
-        cache.get_cached_content(\
-            'http://production.ps.delve.cust.lldns.net/r/PlaylistService/media/%s/getPlaylistByMediaId' % media_uid\
-        )\
-    )
-
-    play_list_item =video_json['playlistItems'][0]
+    log("--media_uid--")
+    log(source_url)
     
-    # Obtient les streams dans un playlist m3u8
-    m3u8_pl=cache.get_cached_content('https://mnmedias.api.telequebec.tv/m3u8/%s.m3u8' % play_list_item['refId'])
-
-    # Cherche le stream de meilleure qualité
-    uri = obtenirMeilleurStream(m3u8_pl)   
+    ## Obtenir JSON avec liens RTMP du playlistService
+    #video_json = simplejson.loads(\
+    #    cache.get_cached_content(\
+    #        'http://production.ps.delve.cust.lldns.net/r/PlaylistService/media/%s/getPlaylistByMediaId' % media_uid\
+    #    )\
+    #)
+    #
+    #play_list_item =video_json['playlistItems'][0]
+    #
+    ## Obtient les streams dans un playlist m3u8
+    #m3u8_pl=cache.get_cached_content('https://mnmedias.api.telequebec.tv/m3u8/%s.m3u8' % play_list_item['refId'])
+    #
+    ## Cherche le stream de meilleure qualité
+    #uri = obtenirMeilleurStream(m3u8_pl)   
 
     # lance le stream
     if uri:
@@ -193,3 +197,7 @@ def obtenirMeilleurStream(pl):
                     uri = line
     return uri
 
+def log(msg):
+    """ function docstring """
+    if xbmcaddon.Addon().getSetting('DebugMode') == 'true':
+        xbmc.log('[%s - DEBUG]: %s' % (xbmcaddon.Addon().getAddonInfo('name'), msg))

@@ -19,10 +19,23 @@ INTEGRAL = 'Integral'
 def u(data):
     return data.encode("utf-8")
 
+def correctEmissionPageURL(url):
+    if url[-3:] == ".ca":
+        url = url + "/"
+    return url
+    
 def getDescription(url):
     log(url) 
+    return "NULL"
     try:
-        data = cache.get_cached_content(url)
+
+        log("---url---")
+        log(url)
+        data = cache.get_cached_content(correctEmissionPageURL(url))
+        
+        log("---data----")
+        #log(data)
+        
         soup = BeautifulSoup(data, convertEntities=BeautifulSoup.HTML_ENTITIES)
         p = soup.findAll("div", { "class" : "banner-card__body" })
         
@@ -35,11 +48,96 @@ def getDescription(url):
     except:
         log("Erreur de getDescription")
     return "Aucune information."
+
+
+def loadEmission(filtres):
+    log("loadEmission")
+    log(filtres)
+    
+    liste = []
+    
+    data = cache.get_cached_content(filtres['content']['url'])
+    
+    log("---data----")
+    #log(data)
+    
+    i= 1
+    
+    soup = BeautifulSoup(data, convertEntities=BeautifulSoup.HTML_ENTITIES)
+    cartes = soup.findAll("div", {"class": "card__thumb"})
+    
+    log("--cartes--")
+    #log(cartes)
+    
+    for carte in cartes :
+        #log(u(carte.getText()))
+        #log(carte.findAll("img")[0]['src'])
+        #log("------------------------------")
+        newItem = {   'genreId': i, 
+                      'nom': u(carte.findAll("img")[0]['alt']),
+                      'resume': getDescription(carte.findAll("a")[0]['href']),
+                      'image' : BASE_URL + carte.findAll("img")[0]['src'],
+                      'url' : correctEmissionPageURL(carte.findAll("a")[0]['href']),
+                      'sourceUrl' : correctEmissionPageURL(carte.findAll("a")[0]['href']),
+                      'filtres' : parse.getCopy(filtres)
+                  }
+                  
+        newItem['filtres']['content']['url'] = carte.findAll("a")[0]['href']
+        
+        liste.append(newItem)
+
+    for item in liste :
+        log("--url--")
+        log(correctEmissionPageURL(carte.findAll("a")[0]['href']))
+    
+        item['isDir']= False
+        item['nom']= urllib2.unquote(item['nom'])
+        #item['url'] = item['url'] or None
+        item['image'] = item['image'] or xbmcaddon.Addon().getAddonInfo('path')+'/icon.png'
+        item['fanart']=xbmcaddon.Addon().getAddonInfo('path')+'/fanart.jpg'
+        #item['filtres'] = parse.getCopy(filtres)
+        item['filtres']['content']['genreId'] = item['genreId']
+        item['isDir'] = False
+        item[LABEL] = None # nomBloc
+        item['categoryType'] = None #episode['categoryType']
+        item['url'] = None #episode['permalink']
+        #item['image'] = None #getThumbnails(episode)
+        item['genreId'] = ''
+        item['nomComplet'] = item['nom'] #episode['view']['title']
+        #item['resume'] =None # episode['view']['description']
+        item[SEASON] = None #'Saison ' + str(episode['seasonNo'])
+        item['duree'] = None #episode['duration']/1000
+
+        item['seasonNo'] = None #episode['seasonNo']
+        item['episodeNo'] =None #episode['episodeNo']
+        item['startDate'] = None #episode['startDate']
+        item['endDate'] = None #episode['endDate']
+        item['endDateTxt'] = None #episode['view']['endDate']
+
+        item['streamInfo'] = None #episode['streamInfo']
+
+        item['nomDuShow'] = None #mainShowName
+
+        #item['sourceUrl'] = correctEmissionPageURL(carte.findAll("a")[0]['href']) #"55" #episode['streamInfo']['sourceId']
+        
+        item['url'] = correctEmissionPageURL(carte.findAll("a")[0]['href']) #episode['streamInfo']['sourceId']
+        
+        
+        
+        item[EPISODE] = None #'Episode ' + str(episode['episodeNo']).zfill(2)
+        item['fanart'] = None #fanart_url
+        #item['nom'] = ''
+    
+    return liste
+
     
 def dictOfGenres(filtres):
-    liste = [{'genreId': 0, 'nom': 'A a Z - Toutes les cat%C3%A9gories','resume':'Tout le contenu disponible.', 'image' : None}]
+    liste = []
     
     data = cache.get_cached_content(BASE_URL + "/emissions")
+    
+    log("---data----")
+    #log(data)
     
     soup = BeautifulSoup(data, convertEntities=BeautifulSoup.HTML_ENTITIES)
     cartes = soup.findAll("div", { "class" : "card" })
@@ -47,24 +145,28 @@ def dictOfGenres(filtres):
     i=1
     
     for carte in cartes :
-        log(u(carte.getText()))
-        log(carte.findAll("img")[0]['src'])
-        log("------------------------------")
+        #log(u(carte.getText()))
+        #log(carte.findAll("img")[0]['src'])
+        #log("------------------------------")
         newItem = {   'genreId': i, 
                       'nom': u(carte.getText()),
                       'resume': getDescription(carte.findAll("a")[0]['href']),
-                      'image' : BASE_URL + carte.findAll("img")[0]['src']
+                      'image' : BASE_URL + carte.findAll("img")[0]['src'],
+                      'url' : correctEmissionPageURL(carte.findAll("a")[0]['href']),
+                      'filtres' : parse.getCopy(filtres)
                   }
                   
+        newItem['filtres']['content']['url'] = carte.findAll("a")[0]['href']
+        
         liste.append(newItem)
 
     for item in liste :
         item['isDir']= True
         item['nom']= urllib2.unquote(item['nom'])
-        item['url'] = AZ_URL
+        #item['url'] = item['url'] or None
         item['image'] = item['image'] or xbmcaddon.Addon().getAddonInfo('path')+'/icon.png'
         item['fanart']=xbmcaddon.Addon().getAddonInfo('path')+'/fanart.jpg'
-        item['filtres'] = parse.getCopy(filtres)
+        #item['filtres'] = parse.getCopy(filtres)
         item['filtres']['content']['genreId'] = item['genreId']
 
     log(liste)

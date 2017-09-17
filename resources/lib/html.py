@@ -5,8 +5,10 @@
 # version 0.2.6 - By CB
 
 import re
-import socket
-import urllib2
+import socket, xbmc, xbmcaddon
+from StringIO import StringIO
+import urllib2, gzip
+
 
 
 # Merci à l'auteur de cette fonction
@@ -63,7 +65,9 @@ def html_unescape(data):
 
 def get_url_txt(the_url):
     """ function docstring """
-    req = urllib2.Request(the_url + "/")
+    log("--get_url_txt----START--")
+    
+    req = urllib2.Request(the_url)
     req.add_header(\
                    'User-Agent', \
                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36'\
@@ -75,13 +79,22 @@ def get_url_txt(the_url):
     req.add_header('Pragma', 'no-cache')
     req.add_header('Cache-Control', 'no-cache')
     response = urllib2.urlopen(req)
-    #print "charset"
-    #print response.headers.getparam('charset')
-    data = response.read() #.decode(response.headers.getparam('charset'))
-    #link = html_unescape(link)
-    #link = urllib2.quote(link)
-    #link = urllib2.unquote(link)
+
+    data = ""
+    log("--encoding--")
+    log(response.info().get('Content-Encoding'))
+    
+    if response.info().get('Content-Encoding') == 'gzip':
+        buf = StringIO( response.read() )
+        f = gzip.GzipFile(fileobj=buf)
+        data = f.read()
+    else:
+        data = response.read()
+    
     response.close()
+    
+    log("--data--")
+    #log(data)
     return data
 
 
@@ -98,4 +111,7 @@ def is_network_available(url):
         return False
 
 
-
+def log(msg):
+    """ function docstring """
+    if xbmcaddon.Addon().getSetting('DebugMode') == 'true':
+        xbmc.log('[%s - DEBUG]: %s' % (xbmcaddon.Addon().getAddonInfo('name'), msg))

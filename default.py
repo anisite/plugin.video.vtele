@@ -21,12 +21,13 @@ def creer_menu_categories():
 
 def creer_liste_filtree():
     """ function docstring """
-
-    navig.ajouterItemAuMenu(parse.get_liste_emissions(filtres))
+    log("---creer_liste_filtree--START----")
+    navig.ajouterItemAuMenu(content.loadEmission(filtres))
         
 
 def creer_liste_videos():
     """ function docstring """
+    log("---creer_liste_videos--START----")
     navig.ajouterItemAuMenu(parse.ListeVideosGroupees(filtres))
 
 def get_params():
@@ -74,7 +75,7 @@ PARAMS = get_params()
 
 URL = None
 MODE = None
-SOURCE_ID = ''
+SOURCE_URL = ''
 FILTERS = ''
 filtres = {}
 
@@ -93,14 +94,14 @@ try:
 except StandardError:
     FILTERS = content.FILTRES
 try:
-    SOURCE_ID = urllib.unquote_plus(PARAMS["sourceId"])
+    SOURCE_URL = urllib.unquote_plus(PARAMS["sourceUrl"])
 except StandardError:
     pass
 
 filtres = simplejson.loads(FILTERS)
    
-if SOURCE_ID !='':
-    navig.jouer_video(SOURCE_ID)
+if SOURCE_URL !='':
+    navig.jouer_video(SOURCE_URL)
 
 elif MODE == 99:
     ADDON.openSettings()
@@ -111,7 +112,7 @@ else:
 
 
 if MODE is not 99:
-    set_sorting_methods(MODE)
+    #set_sorting_methods(MODE)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 if MODE is not 4 and xbmcaddon.Addon().getSetting('DeleteTempFiFilesEnabled') == 'true':
