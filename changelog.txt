@@ -1,3 +1,6 @@
+0.5.1 =======
+- Ajout du support pour Occupation Double, SQ, Code 111 et 911
+
 0.5.0 =======
 - Refonte suite aux changements pour la rentrée 2017
 

@@ -3,15 +3,17 @@
 
 import urllib2, simplejson, parse, cache, re, xbmcaddon, html, xbmc, datetime, time
 from BeautifulSoup import BeautifulSoup
+import urlparse
 
 #import thread
 #import threading
 #from time import sleep
 
-BASE_URL = 'https://noovo.ca'
-AZ_URL = 'http://zonevideo.api.telequebec.tv/data/v1/[YourApiKey]/Az'
-DOSSIERS_URL = 'http://zonevideo.api.telequebec.tv/data/v1/[YourApiKey]/folders'
-#POPULAIRE_URL = 'http://zonevideo.api.telequebec.tv/data/v1/[YourApiKey]/populars/'
+BASE_HOST = 'noovo.ca'
+BASE_URL = 'https://' + BASE_HOST
+
+AZ_URL = ''
+DOSSIERS_URL = ''
 MEDIA_BUNDLE_URL = BASE_URL + 'MediaBundle/'
 
 SEASON = 'Saison'
@@ -19,6 +21,12 @@ EPISODE = 'Episode'
 LABEL = 'label'
 FILTRES = '{"content":{"genreId":"","mediaBundleId":-1,"afficherTous":false},"show":{"' + SEASON + '":"","' + EPISODE + '":"","' + LABEL + '":""},"fullNameItems":[],"sourceId":""}'
 INTEGRAL = 'Integral'
+
+options = {"Occupation Double Bali" : "occupation-double",
+           "SQ" : "SQ",
+           "911" : "911",
+           "Code 111" : "code-111",
+          }
 
 # A simple task to do to each response object
 def do_something(response):
@@ -32,9 +40,21 @@ def threaded_function(arg):
 def u(data):
     return data.encode("utf-8")
 
-def correctEmissionPageURL(url):
+def correctEmissionPageURL(url, nom=None):
     if url[-3:] == ".ca":
         url = url + "/"
+    
+    log("correctEmissionPageURL - nom")
+    log(nom)
+    
+    if nom is not None:
+        if nom in options:
+            nom = options[nom]
+            nom = "emissions/" + nom
+            url = urlparse.urljoin(BASE_URL, nom)
+        
+    log(url)
+        
     return url
 
 
@@ -170,8 +190,22 @@ def listerEqualiser(cartes,filtres):
         #item['nom'] = ''
     return liste
 
+
 def loadListeSaison(filtres):
+    log("-----------LISTE SAISON-------------")
+
     liste = []
+    
+    parsed = urlparse.urlparse(filtres['content']['url'])
+    print filtres['content']['url']
+    out = ""
+    if parsed.netloc != BASE_HOST:
+        out = options[parsed.netloc.replace("." + BASE_HOST, '')]
+        out = "emissions/" + out
+        filtres['content']['url'] = urlparse.urljoin(BASE_URL,out)
+    
+    print filtres['content']['url']
+    
     data = cache.get_cached_content(filtres['content']['url'])
     soup = BeautifulSoup(data, convertEntities=BeautifulSoup.HTML_ENTITIES)
     clip = soup.findAll("div", {'class': re.compile('clip-equalizer')}) #|clip-equalizer
@@ -336,11 +370,11 @@ def dictOfGenres(filtres):
                       'nom': u(carte.getText()),
                       'resume': getDescription(carte.findAll("a")[0]['href']),
                       'image' : BASE_URL + carte.findAll("img")[0]['src'],
-                      'url' : correctEmissionPageURL(carte.findAll("a")[0]['href']),
+                      'url' : correctEmissionPageURL(carte.findAll("a")[0]['href'], u(carte.getText())),
                       'filtres' : parse.getCopy(filtres)
                   }
                   
-        newItem['filtres']['content']['url'] = correctEmissionPageURL(carte.findAll("a")[0]['href'])
+        newItem['filtres']['content']['url'] = newItem['url']
         
         liste.append(newItem)
 

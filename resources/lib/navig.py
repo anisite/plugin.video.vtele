@@ -160,10 +160,12 @@ def jouer_video(source_url):
     #uri = obtenirMeilleurStream(m3u8_pl)   
 
     soup = BeautifulSoup(data, convertEntities=BeautifulSoup.HTML_ENTITIES)
-    video = soup.find("video", { "id" : "videoPlayer" })
+    video = soup.find("video")
     
     log("video")
     log(video)
+    log("data-video-id")
+    log(video['data-video-id'])
     
     uri = THEPLATFORM_CONTENT_URL + video['data-video-id']
     

@@ -5,6 +5,9 @@ import os, urllib, sys, traceback, xbmcplugin, xbmcaddon, xbmc, simplejson, xbmc
 from BeautifulSoup import BeautifulSoup
 from resources.lib import content, parse, navig
 
+
+
+
 def peupler():
     if filtres['content']['mediaBundleId']>0:
         creer_liste_videos()
@@ -23,6 +26,7 @@ def creer_liste_filtree():
     """ function docstring """
     log("---creer_liste_filtree--START----")
     log(filtres['content']['url'])
+        
     if "saisons" in filtres['content']['url'] :
         navig.ajouterItemAuMenu(content.loadEmission(filtres))
     else:
