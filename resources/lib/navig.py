@@ -171,12 +171,12 @@ def jouer_video(source_url):
     
     # lance le stream
     if uri:
-        item = xbmcgui.ListItem(\
-            "Titre",\
-            iconImage=None,\
-            thumbnailImage=None, path=uri)
+        #item = xbmcgui.ListItem(\
+        #    "Titre",\
+        #    iconImage=None,\
+        #    thumbnailImage=None, path=uri)
         play_item = xbmcgui.ListItem(path=uri)
-        xbmcplugin.setResolvedUrl(__handle__,True, item)
+        xbmcplugin.setResolvedUrl(__handle__,True, play_item)
     else:
         xbmc.executebuiltin('Notification(%s,Incapable d''obtenir lien du video,5000,%s')
 
