@@ -136,7 +136,7 @@ def listerEqualiser(cartes,filtres):
         newItem = {   'genreId': 1, 
                       'nom': u(carte.find("div", {"class": "card__body"}).find("a").getText()),
                       'resume': u(carte.find("div", {"class": "card__typography"}).getText()),
-                      'image' : BASE_URL + carte.findAll("img")[0]['src'],
+                      'image' : carte.findAll("img")[0]['src'],
                       'url' : correctEmissionPageURL(carte.findAll("a")[0]['href']),
                       'sourceUrl' : correctEmissionPageURL(carte.findAll("a")[0]['href']),
                       'duree' : duration,
@@ -222,7 +222,7 @@ def loadListeSaison(filtres):
     if soup:
         coverdiv = soup.find("div", {'class': re.compile('banner__cover')})
         if coverdiv:
-            cover = BASE_URL + coverdiv.find("img")['src']
+            cover = coverdiv.find("img")['src']
     filtres['content']['cover'] = cover
     
     plot = ""
@@ -369,7 +369,7 @@ def dictOfGenres(filtres):
         newItem = {   'genreId': i, 
                       'nom': u(carte.getText()),
                       'resume': getDescription(carte.findAll("a")[0]['href']),
-                      'image' : BASE_URL + carte.findAll("img")[0]['src'],
+                      'image' : carte.findAll("img")[0]['src'],
                       'url' : correctEmissionPageURL(carte.findAll("a")[0]['href'], u(carte.getText())),
                       'filtres' : parse.getCopy(filtres)
                   }
