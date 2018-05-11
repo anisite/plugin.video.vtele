@@ -9,13 +9,13 @@
 # vim......: set tabstop=4
 #
 
-import sys,urllib, xbmcgui, xbmcplugin, xbmcaddon,re,cache, simplejson, xbmc
+import sys,urllib, xbmcgui, xbmcplugin, xbmcaddon,re,cache, simplejson, xbmc, html
 from BeautifulSoup import BeautifulSoup
 
 ADDON = xbmcaddon.Addon()
 ADDON_IMAGES_BASEPATH = ADDON.getAddonInfo('path')+'/resources/media/images/'
 ADDON_FANART = ADDON.getAddonInfo('path')+'/fanart.jpg'
-THEPLATFORM_CONTENT_URL = "http://c.brightcove.com/services/mobile/streaming/index/master.m3u8?pubId=618566855001&videoId="
+THEPLATFORM_CONTENT_URL = "https://edge.api.brightcove.com/playback/v1/accounts/618566855001/videos/"
 
 __handle__ = int(sys.argv[1])
 
@@ -142,6 +142,10 @@ def jouer_video(source_url):
     log("--media_uid--")
     log(source_url)
     
+    log("policy key")
+    policyKey = cache.get_policykey()
+    log(policyKey)
+    
     data = cache.get_cached_content(source_url)
     
     ## Obtenir JSON avec liens RTMP du playlistService
@@ -167,14 +171,24 @@ def jouer_video(source_url):
     log("data-video-id")
     log(video['data-video-id'])
     
+    #Obtenir le fichier de flux
     uri = THEPLATFORM_CONTENT_URL + video['data-video-id']
+    
+    content = html.get_url_txt(uri, policyKey)
+    jsonData = simplejson.loads(content)
+    
+    strSrcUrl = ""
+    
+    bitrate = 0
+    for source in jsonData['sources']:
+        if 'avg_bitrate' in source:
+            if source['avg_bitrate'] > bitrate:
+                bitrate = source['avg_bitrate']
+                uri = source['src']
+
     
     # lance le stream
     if uri:
-        #item = xbmcgui.ListItem(\
-        #    "Titre",\
-        #    iconImage=None,\
-        #    thumbnailImage=None, path=uri)
         play_item = xbmcgui.ListItem(path=uri)
         xbmcplugin.setResolvedUrl(__handle__,True, play_item)
     else:

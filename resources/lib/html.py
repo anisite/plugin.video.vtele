@@ -63,21 +63,26 @@ def html_unescape(data):
     data = data.encode('utf-8')
     return data
 
-def get_url_txt(the_url):
+def get_url_txt(the_url, pk=None):
     """ function docstring """
     log("--get_url_txt----START--")
     
     req = urllib2.Request(the_url)
-    req.add_header(\
-                   'User-Agent', \
-                   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36'\
-                   )
-    req.add_header('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8')
-    req.add_header('Accept-Language', 'fr-CA,fr-FR;q=0.8,en-US;q=0.6,fr;q=0.4,en;q=0.2')
-    req.add_header('Accept-Encoding', 'gzip, deflate')
-    req.add_header('Connection', 'keep-alive')
-    req.add_header('Pragma', 'no-cache')
-    req.add_header('Cache-Control', 'no-cache')
+    
+    if pk:
+        req.add_header('Accept', 'application/json;pk=' + pk)
+    else:
+        req.add_header(\
+                       'User-Agent', \
+                       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36'\
+                       )
+        req.add_header('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8')
+        req.add_header('Accept-Language', 'fr-CA,fr-FR;q=0.8,en-US;q=0.6,fr;q=0.4,en;q=0.2')
+        req.add_header('Accept-Encoding', 'gzip, deflate')
+        req.add_header('Connection', 'keep-alive')
+        req.add_header('Pragma', 'no-cache')
+        req.add_header('Cache-Control', 'no-cache')
+        
     response = urllib2.urlopen(req)
 
     data = ""
