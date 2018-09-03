@@ -124,12 +124,12 @@ def listerEqualiser(cartes,filtres):
         if durationDiv:
             duration = durationDiv.find('li').getText()
             try:
-                duration = time.strptime(duration,'%M m %S s')
+                duration = time.strptime(duration,'%Mm %Ss')
             except:
                 try:
-                    duration = time.strptime(duration,'%H H %M m')
+                    duration = time.strptime(duration,'%HH %Mm')
                 except:
-                    duration = -1
+                    duration = time.strptime("0m 0s",'%Mm %Ss')
             duration = datetime.timedelta(hours=duration.tm_hour,minutes=duration.tm_min,seconds=duration.tm_sec).total_seconds()
         
         
