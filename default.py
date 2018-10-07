@@ -27,7 +27,9 @@ def creer_liste_filtree():
     log("---creer_liste_filtree--START----")
     log(filtres['content']['url'])
         
-    if "saisons" in filtres['content']['url'] :
+    if "occupationdouble" in filtres['content']['url'] :
+        navig.ajouterItemAuMenu(content.loadListeSaisonOD(filtres))
+    elif "saisons" in filtres['content']['url'] :
         navig.ajouterItemAuMenu(content.loadEmission(filtres))
     else:
         navig.ajouterItemAuMenu(content.loadListeSaison(filtres))

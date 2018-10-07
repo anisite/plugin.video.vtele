@@ -7,8 +7,6 @@ ADDON = xbmcaddon.Addon()
 ADDON_CACHE_BASEDIR = os.path.join(xbmc.translatePath(ADDON.getAddonInfo('path')).decode('utf-8'), ".cache")
 ADDON_CACHE_TTL = float(ADDON.getSetting('CacheTTL').replace("0", ".5").replace("73", "0"))
 
-POLICY_CACHE_URL = "https://players.brightcove.net/618566855001/r1XGoMLUW_default/config.json"
-
 if not os.path.exists(ADDON_CACHE_BASEDIR):
     os.makedirs(ADDON_CACHE_BASEDIR)
 
@@ -23,8 +21,19 @@ def is_cached_content_expired(last_update):
     expired = time.time() >= (last_update + (ADDON_CACHE_TTL * 60**2))
     return expired
 
-def get_policykey():
-    return simplejson.loads(get_cached_content(POLICY_CACHE_URL))["video_cloud"]["policy_key"];
+def get_policykey(account, player, embed):
+    #
+    #618566855001
+    #r1XGoMLUW
+    #
+    POLICY_CACHE_URL = "https://players.brightcove.net/" + account + "/" + player + "_" + embed + "/config.json"
+    
+    load = simplejson.loads(get_cached_content(POLICY_CACHE_URL))
+    log(load)
+    log(load["video_cloud"])
+    log(load["video_cloud"]["policy_key"])
+    
+    return load["video_cloud"]["policy_key"];
 
 def get_cached_content(path):
     """ function docstring """

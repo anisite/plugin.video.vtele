@@ -142,9 +142,7 @@ def jouer_video(source_url):
     log("--media_uid--")
     log(source_url)
     
-    log("policy key")
-    policyKey = cache.get_policykey()
-    log(policyKey)
+
     
     data = cache.get_cached_content(source_url)
     
@@ -171,6 +169,12 @@ def jouer_video(source_url):
     log("data-video-id")
     log(video['data-video-id'])
     
+    
+    log("policy key")
+    #get_policykey(account, player):
+    policyKey = cache.get_policykey(video['data-account'], video['data-player'], video['data-embed'])
+    log(policyKey)
+    
     #Obtenir le fichier de flux
     uri = THEPLATFORM_CONTENT_URL + video['data-video-id']
     
@@ -180,6 +184,9 @@ def jouer_video(source_url):
     strSrcUrl = ""
     
     bitrate = 0
+    
+    uri = jsonData['sources'][0]['src']
+    
     for source in jsonData['sources']:
         if 'avg_bitrate' in source:
             if source['avg_bitrate'] > bitrate:

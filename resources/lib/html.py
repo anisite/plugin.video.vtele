@@ -99,7 +99,7 @@ def get_url_txt(the_url, pk=None):
     response.close()
     
     log("--data--")
-    #log(data)
+    log(data)
     return data
 
 
