@@ -162,11 +162,12 @@ def jouer_video(source_url):
     #uri = obtenirMeilleurStream(m3u8_pl)   
 
     soup = BeautifulSoup(data, convertEntities=BeautifulSoup.HTML_ENTITIES)
-    video = soup.find("video-js")
+    videoXYZ = soup.find("video-js")
     
-    log("video-js")
-    log("data-video-id")
-    log(video['data-video-id'])
+    if videoXYZ is None:
+     video = soup.find("video")
+    else:
+     video = soup.find("video-js")
     
     
     log("policy key")
