@@ -25,11 +25,14 @@ def creer_menu_categories():
 def creer_liste_filtree():
     """ function docstring """
     log("---creer_liste_filtree--START----")
+    log("caca 0")
     log(filtres['content']['url'])
         
     if "occupationdouble" in filtres['content']['url'] :
         navig.ajouterItemAuMenu(content.loadListeSaisonOD(filtres))
-    elif "saisons" in filtres['content']['url'] :
+    elif "saison" in filtres['content']['url'] :
+        navig.ajouterItemAuMenu(content.loadEmission(filtres))
+    elif "afrique-du-sud" in filtres['content']['url'] :
         navig.ajouterItemAuMenu(content.loadEmission(filtres))
     else:
         navig.ajouterItemAuMenu(content.loadListeSaison(filtres))

@@ -38,6 +38,7 @@ def get_policykey(account, player, embed):
 def get_cached_content(path):
     """ function docstring """
     log("--get_cached_content----START--")
+    return html.get_url_txt(path)
     content = None
     try:
         filename = get_cached_filename(path)

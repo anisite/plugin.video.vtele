@@ -49,12 +49,14 @@ def u(data):
 def correctEmissionPageURL(url, nom=None):
     log("correctEmissionPageURL - nom")
     log(nom)
+    log("correctEmissionPageURL - url")
+    log(url)
+    
+    #if url[0] == "/":
+    #    url = BASE_URL + url
 
     if url[-3:] == ".ca":
         url = url + "/"
-    
-    log("correctEmissionPageURL - nom")
-    log(nom)
     
     if nom is not None:
         if nom in options:
@@ -111,13 +113,13 @@ def getDescription(url):
         log("Erreur de getDescription")
     return "Aucune information."
 
-def chargerProchainePage(url):
-    #log(url)
-    data = cache.get_cached_content(url)
-    soup = BeautifulSoup(data, convertEntities=BeautifulSoup.HTML_ENTITIES)
-    avecPagingation = soup.find("nav", {'class': re.compile('pagination-more.*')})
-    if avecPagingation:
-        data = data + chargerProchainePage(avecPagingation.find('a')['data-ajax-action'])
+#def chargerProchainePage(url):
+#    #log(url)
+#    data = cache.get_cached_content(url)
+#    soup = BeautifulSoup(data, convertEntities=BeautifulSoup.HTML_ENTITIES)
+#    avecPagingation = soup.find("nav", {'class': re.compile('pagination-more.*')})
+#    if avecPagingation:
+#        data = data + chargerProchainePage(avecPagingation.find('a')['data-ajax-action'])
     
     return data
 
@@ -127,7 +129,9 @@ def listerEqualiser(cartes,filtres):
     liste = []
     for carte in cartes :
         carte = carte.parent
-        #log(u(carte.getText()))
+        log("----Charger Carte -----")
+        log(u(carte.getText()))
+        log(carte)
         #log(carte.findAll("img")[0]['src'])
         #log("------------------------------")
         
@@ -144,10 +148,25 @@ def listerEqualiser(cartes,filtres):
                     duration = time.strptime("0m 0s",'%Mm %Ss')
             duration = datetime.timedelta(hours=duration.tm_hour,minutes=duration.tm_min,seconds=duration.tm_sec).total_seconds()
         
+        print duration
+        
+        nom = ""
+        try:
+            #nom = u(carte.find("div", {'class': re.compile('card__body.*')}).find("a").getText())
+            nom = u(carte.find("a", {'class': re.compile('card__title')}).getText())
+        except:
+            try:
+                nom = u(carte.find("div", {'class': re.compile('card__body.*')}).find("a").getText())
+            except:
+                nom = "no name"
+        
+        log(nom)
+        resume = u(carte.find("div", {"class": "card__typography"}).getText())
+        log("resume: " + resume)
         
         newItem = {   'genreId': 1, 
-                      'nom': u(carte.find("div", {"class": "card__body"}).find("a").getText()),
-                      'resume': u(carte.find("div", {"class": "card__typography"}).getText()),
+                      'nom': nom,
+                      'resume': resume,
                       'image' : carte.findAll("img")[0]['src'],
                       'url' : correctEmissionPageURL(carte.findAll("a")[0]['href']),
                       'sourceUrl' : correctEmissionPageURL(carte.findAll("a")[0]['href']),
@@ -403,7 +422,10 @@ def loadListeSaison(filtres):
     if equalizer:
         cartes = equalizer.findAll("div", {"class": "card__thumb"})
     
-    saisons = soup.findAll("a", {'href': re.compile('.*/saisons/.*')})
+    
+    nav = soup.findAll("div", {'class': re.compile('l-section-header-navigation')})[0]
+    saisons = nav.findAll("a", {'href': re.compile('.*/saison.*')})
+    #saisons = soup.findAll("a", text = re.compile('.*Saison [0-9]{1,2}.*'))
     
     log(saisons)
 
@@ -419,7 +441,22 @@ def loadListeSaison(filtres):
         plot = ""
     else:
         plot = " (vide)"
+
+    #PATCH OD
+    if "occupation-double" in filtres['content']['url']:
+        newItem = {   'genreId': 2, 
+                    'nom': u("Afrique du Sud"),
+                    'resume': "Voir les épisodes",
+                    'image' : "DefaultFolder.png",
+                    'url' : "https://noovo.ca/emissions/occupation-double/afrique-du-sud/episodes/",
+                    'filtres' : parse.getCopy(filtres)
+                }
+                
+        newItem['filtres']['content']['url'] = "/emissions/occupation-double/afrique-du-sud/episodes/"
+        newItem['filtres']['content']['cover'] = cover
         
+        liste.append(newItem)
+
     for saison in saisons:
         newItem = {   'genreId': 2, 
                     'nom': u(saison.getText() + plot ),
@@ -489,21 +526,32 @@ def loadEmission(filtres):
     data = cache.get_cached_content(BASE_URL + filtres['content']['url'])
     
     log("---data----")
-    #log(data)
     
     i= 1
     
     soup = BeautifulSoup(data, convertEntities=BeautifulSoup.HTML_ENTITIES)
     
-    avecPagingation = soup.find("nav", {'class': re.compile('pagination-more.*')})
+    avecPagingation = soup.find("a", {'class': re.compile('pagination__arrow--right')})
     
     if filtres['content']['afficherTous']:
         log("---------avec---------pagination------------------")
         #log(avecPagingation)
-        urlNext = avecPagingation.find('a')['data-ajax-action']
-        next = chargerProchainePage(urlNext)
-        soup = BeautifulSoup(data + next, convertEntities=BeautifulSoup.HTML_ENTITIES)
-    
+        #urlNext = avecPagingation.find('a')['data-ajax-action']
+        #next = chargerProchainePage(urlNext)
+        #log("avecPagingation" + avecPagingation)
+        navm = soup.find("nav", {'class': re.compile('pagination')})
+        lien = navm.findAll("a", {'class': re.compile('pagination__link.*')})
+        
+        log(lien)
+
+        for lie in lien[1:] :
+            log(lie)
+            log(lie['href'])
+        
+            data = data + cache.get_cached_content(lie['href'])
+  
+        soup = BeautifulSoup(data, convertEntities=BeautifulSoup.HTML_ENTITIES)
+        
     sections = soup.findAll("div", {'class': re.compile('video-equalizer')}) #|clip-equalizer
     
     print "-----------------------------------------------"
