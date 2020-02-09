@@ -161,7 +161,7 @@ def listerEqualiser(cartes,filtres):
                 nom = "no name"
         
         log(nom)
-        resume = u(carte.find("div", {"class": "card__typography"}).getText())
+        resume = u(carte.find("div", {"class": re.compile('card__typography.*')}).getText()) #PATCH
         log("resume: " + resume)
         
         newItem = {   'genreId': 1, 
