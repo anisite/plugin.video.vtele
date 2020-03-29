@@ -131,7 +131,7 @@ def listerEqualiser(cartes,filtres):
         carte = carte.parent
         log("----Charger Carte -----")
         log(u(carte.getText()))
-        log(carte)
+        #log(carte)
         #log(carte.findAll("img")[0]['src'])
         #log("------------------------------")
         
@@ -161,7 +161,7 @@ def listerEqualiser(cartes,filtres):
                 nom = "no name"
         
         log(nom)
-        resume = u(carte.find("div", {"class": re.compile('card__typography.*')}).getText()) #PATCH
+        resume = u(carte.getText(" ")) #PATCH
         log("resume: " + resume)
         
         newItem = {   'genreId': 1, 
@@ -417,11 +417,11 @@ def loadListeSaison(filtres):
     data = cache.get_cached_content(filtres['content']['url'])
     soup = BeautifulSoup(data, convertEntities=BeautifulSoup.HTML_ENTITIES)
     clip = soup.findAll("div", {'class': re.compile('clip-equalizer')}) #|clip-equalizer
-    equalizer = soup.find("div", {'class': re.compile('video-equalizer')}) #|clip-equalizer
+    equalizer = soup.find("div", {'class': re.compile('video-equalizer.*')}) #|clip-equalizer
     cartes = None
-    if equalizer:
-        cartes = equalizer.findAll("div", {"class": "card__thumb"})
     
+    if equalizer:
+        cartes = equalizer.findAll("div", {"class": re.compile('card__thumb.*')})
     
     nav = soup.findAll("div", {'class': re.compile('l-section-header-navigation')})[0]
     saisons = nav.findAll("a", {'href': re.compile('.*/saison.*')})
@@ -431,7 +431,7 @@ def loadListeSaison(filtres):
 
     cover = xbmcaddon.Addon().getAddonInfo('path')+'/fanart.jpg'
     if soup:
-        coverdiv = soup.find("div", {'class': re.compile('banner__cover')})
+        coverdiv = soup.find("div", {'class': re.compile('banner__cover.*')})
         if coverdiv:
             cover = coverdiv.find("img")['src']
     filtres['content']['cover'] = cover
@@ -499,7 +499,7 @@ def loadListeSaison(filtres):
         
     if clip:
         for c in clip:
-            cartes = c.findAll("div", {"class": "card__thumb"})
+            cartes = c.findAll("div", {"class": re.compile('card__thumb.*')})
             log("--cartes--")
             #log(cartes)
             
@@ -573,7 +573,7 @@ def loadEmission(filtres):
         
 
     for section in sections :
-        cartes = section.findAll("div", {"class": "card__thumb"})
+        cartes = section.findAll("div", {"class": re.compile('card__thumb.*')})
         log("--cartes--")
         #log(cartes)
         liste = liste + listerEqualiser(cartes,filtres)

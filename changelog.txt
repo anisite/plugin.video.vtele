@@ -1,3 +1,9 @@
+0.6.2 =======
+-Correction des erreurs suite aux changements du site Noovo.ca
+
+0.6.1 =======
+-Correction des erreurs suite aux changements du site Noovo.ca
+
 0.6.0 =======
 -Correction des erreurs suite aux changements du site Noovo.ca
 
