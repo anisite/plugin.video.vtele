@@ -2,7 +2,7 @@
 
 import os, urllib, sys, traceback, xbmcplugin, xbmcaddon, xbmc, simplejson, xbmcgui
 
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 from resources.lib import content, parse, navig
 
 

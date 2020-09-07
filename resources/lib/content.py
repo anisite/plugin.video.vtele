@@ -2,7 +2,7 @@
 # encoding=utf8
 
 import urllib2, simplejson, parse, cache, re, xbmcaddon, html, xbmc, datetime, time
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 import urlparse
 
 #import thread
@@ -100,27 +100,19 @@ def getDescription(url):
         log("---data----")
         #log(data)
         
-        soup = BeautifulSoup(data, convertEntities=BeautifulSoup.HTML_ENTITIES)
-        p = soup.findAll("div", { "class" : "banner-card__body" })
+        soup = BeautifulSoup(data, 'html.parser')
+        p = soup.find_all("div", { "class" : "banner-card__body" })
         
         log(p)
         
         if len(p) > 0:
-            desc = u(p[0].getText())
+            desc = u(p[0].get_text(strip=True))
             log(desc)
             return desc
     except:
         log("Erreur de getDescription")
     return "Aucune information."
 
-#def chargerProchainePage(url):
-#    #log(url)
-#    data = cache.get_cached_content(url)
-#    soup = BeautifulSoup(data, convertEntities=BeautifulSoup.HTML_ENTITIES)
-#    avecPagingation = soup.find("nav", {'class': re.compile('pagination-more.*')})
-#    if avecPagingation:
-#        data = data + chargerProchainePage(avecPagingation.find('a')['data-ajax-action'])
-    
     return data
 
 def listerEqualiser(cartes,filtres):
@@ -130,15 +122,15 @@ def listerEqualiser(cartes,filtres):
     for carte in cartes :
         carte = carte.parent
         log("----Charger Carte -----")
-        log(u(carte.getText()))
+        #log(u(carte.getText()))
         #log(carte)
-        #log(carte.findAll("img")[0]['src'])
+        #log(carte.find_all("img")[0]['src'])
         #log("------------------------------")
         
         duration = -1
         durationDiv = carte.find('ul', {"class": 'card__meta'})
         if durationDiv:
-            duration = durationDiv.find('li').getText()
+            duration = durationDiv.find('li').get_text(strip=True)
             try:
                 duration = time.strptime(duration,'%Mm %Ss')
             except:
@@ -153,34 +145,34 @@ def listerEqualiser(cartes,filtres):
         nom = ""
         try:
             #nom = u(carte.find("div", {'class': re.compile('card__body.*')}).find("a").getText())
-            nom = u(carte.find("a", {'class': re.compile('card__title')}).getText())
+            nom = u(carte.find("a", {'class': re.compile('card__title')}).get_text(strip=True))
         except:
             try:
-                nom = u(carte.find("div", {'class': re.compile('card__body.*')}).find("a").getText())
+                nom = u(carte.find("div", {'class': re.compile('card__body.*')}).find("a").get_text(strip=True))
             except:
                 nom = "no name"
         
         log(nom)
-        resume = u(carte.getText(" ")) #PATCH
+        resume = u(carte.getText(" ",strip=True)) #PATCH
         log("resume: " + resume)
         
         newItem = {   'genreId': 1, 
                       'nom': nom,
                       'resume': resume,
-                      'image' : carte.findAll("img")[0]['src'],
-                      'url' : correctEmissionPageURL(carte.findAll("a")[0]['href']),
-                      'sourceUrl' : correctEmissionPageURL(carte.findAll("a")[0]['href']),
+                      'image' : carte.find_all("img")[0]['src'],
+                      'url' : correctEmissionPageURL(carte.find_all("a")[0]['href']),
+                      'sourceUrl' : correctEmissionPageURL(carte.find_all("a")[0]['href']),
                       'duree' : duration,
                       'filtres' : parse.getCopy(filtres)
                   }
                   
-        newItem['filtres']['content']['url'] = correctEmissionPageURL(carte.findAll("a")[0]['href'])
+        newItem['filtres']['content']['url'] = correctEmissionPageURL(carte.find_all("a")[0]['href'])
         
         liste.append(newItem)
 
     for item in liste :
         #log("--url--")
-        #log(correctEmissionPageURL(carte.findAll("a")[0]['href']))
+        #log(correctEmissionPageURL(carte.find_all("a")[0]['href']))
     
         item['isDir']= False
         item['forceSort'] = False
@@ -210,9 +202,9 @@ def listerEqualiser(cartes,filtres):
 
         item['nomDuShow'] = None #mainShowName
 
-        #item['sourceUrl'] = correctEmissionPageURL(carte.findAll("a")[0]['href']) #"55" #episode['streamInfo']['sourceId']
+        #item['sourceUrl'] = correctEmissionPageURL(carte.find_all("a")[0]['href']) #"55" #episode['streamInfo']['sourceId']
         
-        item['url'] = correctEmissionPageURL(carte.findAll("a")[0]['href']) #episode['streamInfo']['sourceId']
+        item['url'] = correctEmissionPageURL(carte.find_all("a")[0]['href']) #episode['streamInfo']['sourceId']
         
         
         
@@ -243,17 +235,17 @@ def loadListeSaisonOD(filtres):
     print filtres['content']['url']
     
     data = cache.get_cached_content(filtres['content']['url'])
-    soup = BeautifulSoup(data, convertEntities=BeautifulSoup.HTML_ENTITIES)
-    clip = soup.findAll("div", {'class': re.compile('clip-equalizer')}) #|clip-equalizer
+    soup = BeautifulSoup(data, 'html.parser')
+    clip = soup.find_all("div", {'class': re.compile('clip-equalizer')}) #|clip-equalizer
     equalizer = soup.find("section", {'class': re.compile('od_article_list')}) #|clip-equalizer
     cartes = None
     
     log(equalizer)
     
     if equalizer:
-        cartes = equalizer.findAll("article")
+        cartes = equalizer.find_all("article")
     
-    saisons = soup.findAll("a", {'href': re.compile('.*/saisons/.*')})
+    saisons = soup.find_all("a", {'href': re.compile('.*/saisons/.*')})
     
     liste = []
     for carte in cartes:
@@ -261,22 +253,22 @@ def loadListeSaisonOD(filtres):
         #log(nom)
  
         newItem = {   'genreId': 1, 
-                      'nom': u(carte.find("header").find("h1").getText()),
-                      'resume': u(carte.find("div", {"class": "content"}).getText()),
-                      'image' : carte.findAll("img")[0]['src'],
-                      'url' : correctEmissionPageURL(carte.findAll("a")[0]['href']),
-                      'sourceUrl' : correctEmissionPageURL(carte.findAll("a")[0]['href']),
+                      'nom': u(carte.find("header").find("h1").get_text(strip=True)),
+                      'resume': u(carte.find("div", {"class": "content"}).get_text(strip=True)),
+                      'image' : carte.find_all("img")[0]['src'],
+                      'url' : correctEmissionPageURL(carte.find_all("a")[0]['href']),
+                      'sourceUrl' : correctEmissionPageURL(carte.find_all("a")[0]['href']),
                       'duree' : None,
                       'filtres' : parse.getCopy(filtres)
                   }
                   
-        newItem['filtres']['content']['url'] = carte.findAll("a")[0]['href']
+        newItem['filtres']['content']['url'] = carte.find_all("a")[0]['href']
         
         liste.append(newItem)
 
     for item in liste :
         #log("--url--")
-        #log(correctEmissionPageURL(carte.findAll("a")[0]['href']))
+        #log(correctEmissionPageURL(carte.find_all("a")[0]['href']))
 
         item['isDir']= False
         item['forceSort'] = False
@@ -306,9 +298,9 @@ def loadListeSaisonOD(filtres):
 
         item['nomDuShow'] = None #mainShowName
 
-        #item['sourceUrl'] = correctEmissionPageURL(carte.findAll("a")[0]['href']) #"55" #episode['streamInfo']['sourceId']
+        #item['sourceUrl'] = correctEmissionPageURL(carte.find_all("a")[0]['href']) #"55" #episode['streamInfo']['sourceId']
         
-        item['url'] = correctEmissionPageURL(carte.findAll("a")[0]['href']) #episode['streamInfo']['sourceId']
+        item['url'] = correctEmissionPageURL(carte.find_all("a")[0]['href']) #episode['streamInfo']['sourceId']
         
         
         
@@ -376,7 +368,7 @@ def loadListeSaisonOD(filtres):
     #    
     #if clip:
     #    for c in clip:
-    #        cartes = c.findAll("div", {"class": "card__thumb"})
+    #        cartes = c.find_all("div", {"class": "card__thumb"})
     #        log("--cartes--")
     #        #log(cartes)
     #        
@@ -415,17 +407,17 @@ def loadListeSaison(filtres):
     print filtres['content']['url']
     
     data = cache.get_cached_content(filtres['content']['url'])
-    soup = BeautifulSoup(data, convertEntities=BeautifulSoup.HTML_ENTITIES)
-    clip = soup.findAll("div", {'class': re.compile('clip-equalizer')}) #|clip-equalizer
+    soup = BeautifulSoup(data, 'html.parser')
+    clip = soup.find_all("div", {'class': re.compile('clip-equalizer')}) #|clip-equalizer
     equalizer = soup.find("div", {'class': re.compile('video-equalizer.*')}) #|clip-equalizer
     cartes = None
     
     if equalizer:
-        cartes = equalizer.findAll("div", {"class": re.compile('card__thumb.*')})
+        cartes = equalizer.find_all("div", {"class": re.compile('card__thumb.*')})
     
-    nav = soup.findAll("div", {'class': re.compile('l-section-header-navigation')})[0]
-    saisons = nav.findAll("a", {'href': re.compile('.*/saison.*')})
-    #saisons = soup.findAll("a", text = re.compile('.*Saison [0-9]{1,2}.*'))
+    nav = soup.find_all("div", {'class': re.compile('l-section-header-navigation')})[0]
+    saisons = nav.find_all("a", {'href': re.compile('.*/saison.*')})
+    #saisons = soup.find_all("a", text = re.compile('.*Saison [0-9]{1,2}.*'))
     
     log(saisons)
 
@@ -459,8 +451,8 @@ def loadListeSaison(filtres):
 
     for saison in saisons:
         newItem = {   'genreId': 2, 
-                    'nom': u(saison.getText() + plot ),
-                    'resume': "Voir les épisodes de la " + u(saison.getText()),
+                    'nom': u(saison.get_text(strip=True) + plot ),
+                    'resume': "Voir les épisodes de la " + u(saison.get_text(strip=True)),
                     'image' : "DefaultFolder.png",
                     'url' : saison['href'],
                     'filtres' : parse.getCopy(filtres)
@@ -499,7 +491,7 @@ def loadListeSaison(filtres):
         
     if clip:
         for c in clip:
-            cartes = c.findAll("div", {"class": re.compile('card__thumb.*')})
+            cartes = c.find_all("div", {"class": re.compile('card__thumb.*')})
             log("--cartes--")
             #log(cartes)
             
@@ -529,7 +521,7 @@ def loadEmission(filtres):
     
     i= 1
     
-    soup = BeautifulSoup(data, convertEntities=BeautifulSoup.HTML_ENTITIES)
+    soup = BeautifulSoup(data, 'html.parser')
     
     avecPagingation = soup.find("a", {'class': re.compile('pagination__arrow--right')})
     
@@ -540,7 +532,7 @@ def loadEmission(filtres):
         #next = chargerProchainePage(urlNext)
         #log("avecPagingation" + avecPagingation)
         navm = soup.find("nav", {'class': re.compile('pagination')})
-        lien = navm.findAll("a", {'class': re.compile('pagination__link.*')})
+        lien = navm.find_all("a", {'class': re.compile('pagination__link.*')})
         
         log(lien)
 
@@ -550,9 +542,9 @@ def loadEmission(filtres):
         
             data = data + cache.get_cached_content(lie['href'])
   
-        soup = BeautifulSoup(data, convertEntities=BeautifulSoup.HTML_ENTITIES)
+        soup = BeautifulSoup(data, 'html.parser')
         
-    sections = soup.findAll("div", {'class': re.compile('video-equalizer')}) #|clip-equalizer
+    sections = soup.find_all("div", {'class': re.compile('video-equalizer')}) #|clip-equalizer
     
     print "-----------------------------------------------"
     print sections
@@ -573,7 +565,7 @@ def loadEmission(filtres):
         
 
     for section in sections :
-        cartes = section.findAll("div", {"class": re.compile('card__thumb.*')})
+        cartes = section.find_all("div", {"class": re.compile('card__thumb.*')})
         log("--cartes--")
         #log(cartes)
         liste = liste + listerEqualiser(cartes,filtres)
@@ -593,25 +585,33 @@ def dictOfGenres(filtres):
     log("---data----")
     #log(data)
     
-    soup = BeautifulSoup(data, convertEntities=BeautifulSoup.HTML_ENTITIES)
-    cartes = soup.findAll("div", { "class" : "card" })
-    #cartes = soup.findAll("div", {'class': re.compile(r'\card\b')})
+    soup = BeautifulSoup(data, 'html.parser')
+    cartes = soup.find_all("div", { "class" : "card" })
+    #cartes = soup.find_all("div", {'class': re.compile(r'\card\b')})
     
     i=1
 
-    
     for carte in cartes :
-        log("carte liste element")
-        log(carte.findAll("a")[0]['href'])
-        log(u(carte.getText()))
+        #log("carte liste element")
+        #log(carte.find_all("a")[0]['href'])
         #log(u(carte.getText()))
-        #log(carte.findAll("img")[0]['src'])
+        #log(u(carte.getText()))
+        #log(carte.find_all("img")[0]['src'])
         #log("------------------------------")
+        
+        #log(carte.find('img'))
+        
+        image = carte.find('img')
+        srcImage = None
+        
+        if image != None :
+            srcImage = image['src']
+        
         newItem = {   'genreId': i, 
-                      'nom': u(carte.getText()),
-                      'resume': getDescription(carte.findAll("a")[0]['href']),
-                      'image' : carte.findAll("img")[0]['src'],
-                      'url' : correctEmissionPageURL(carte.findAll("a")[0]['href'], u(carte.getText())),
+                      'nom': u(carte.get_text(strip=True)),
+                      'resume': "", #getDescription(carte.find_all("a")[0]['href']),
+                      'image' : srcImage,
+                      'url' : correctEmissionPageURL(carte.find_all("a")[0]['href'], u(carte.get_text(strip=True))),
                       'filtres' : parse.getCopy(filtres)
                   }
                   

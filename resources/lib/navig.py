@@ -10,7 +10,7 @@
 #
 
 import sys,urllib, xbmcgui, xbmcplugin, xbmcaddon,re,cache, simplejson, xbmc, html
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 
 ADDON = xbmcaddon.Addon()
 ADDON_IMAGES_BASEPATH = ADDON.getAddonInfo('path')+'/resources/media/images/'
@@ -161,7 +161,7 @@ def jouer_video(source_url):
     ## Cherche le stream de meilleure qualité
     #uri = obtenirMeilleurStream(m3u8_pl)   
 
-    soup = BeautifulSoup(data, convertEntities=BeautifulSoup.HTML_ENTITIES)
+    soup = BeautifulSoup(data, 'html.parser')
     videoXYZ = soup.find("video-js")
     
     if videoXYZ is None:
