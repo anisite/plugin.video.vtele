@@ -22,13 +22,13 @@ LABEL = 'label'
 FILTRES = '{"content":{"genreId":"","mediaBundleId":-1,"afficherTous":false},"show":{"' + SEASON + '":"","' + EPISODE + '":"","' + LABEL + '":""},"fullNameItems":[],"sourceId":""}'
 INTEGRAL = 'Integral'
 
-options = {"Occupation Double Grèce" : "occupation-double",
+options = {
            "SQ" : "SQ",
            "911" : "911",
            "Code 111" : "code-111",
           }
           
-options2 = {"occupation-double" : urlparse.urljoin(BASE_URL, "https://occupationdouble.noovo.ca/grece/emissions/"),
+options2 = {
            "SQ" : urlparse.urljoin(BASE_URL, "emissions/SQ"),
            "911" : urlparse.urljoin(BASE_URL, "emissions/911"),
            "code-111" : urlparse.urljoin(BASE_URL, "emissions/code-111"),
@@ -245,7 +245,7 @@ def loadListeSaisonOD(filtres):
     if equalizer:
         cartes = equalizer.find_all("article")
     
-    saisons = soup.find_all("a", {'href': re.compile('.*/saisons/.*')})
+    saisons = soup.find_all("a", {'href': re.compile('.*/episodes')})
     
     liste = []
     for carte in cartes:
@@ -416,7 +416,7 @@ def loadListeSaison(filtres):
         cartes = equalizer.find_all("div", {"class": re.compile('card__thumb.*')})
     
     nav = soup.find_all("div", {'class': re.compile('l-section-header-navigation')})[0]
-    saisons = nav.find_all("a", {'href': re.compile('.*/saison.*')})
+    saisons = nav.find_all("a", {'href': re.compile('.*/episodes')})
     #saisons = soup.find_all("a", text = re.compile('.*Saison [0-9]{1,2}.*'))
     
     log(saisons)
@@ -435,19 +435,32 @@ def loadListeSaison(filtres):
         plot = " (vide)"
 
     #PATCH OD
-    if "occupation-double" in filtres['content']['url']:
-        newItem = {   'genreId': 2, 
-                    'nom': u("Afrique du Sud"),
-                    'resume': "Voir les épisodes",
-                    'image' : "DefaultFolder.png",
-                    'url' : "https://noovo.ca/emissions/occupation-double/afrique-du-sud/episodes/",
-                    'filtres' : parse.getCopy(filtres)
-                }
-                
-        newItem['filtres']['content']['url'] = "/emissions/occupation-double/afrique-du-sud/episodes/"
-        newItem['filtres']['content']['cover'] = cover
-        
-        liste.append(newItem)
+    #if "occupation-double" in filtres['content']['url']:
+    #    newItem = {   'genreId': 2, 
+    #                'nom': u("Afrique du Sud"),
+    #                'resume': "Voir les épisodes",
+    #                'image' : "DefaultFolder.png",
+    #                'url' : "https://noovo.ca/emissions/occupation-double/afrique-du-sud/episodes/",
+    #                'filtres' : parse.getCopy(filtres)
+    #            }
+    #            
+    #    newItem['filtres']['content']['url'] = "/emissions/occupation-double/afrique-du-sud/episodes/"
+    #    newItem['filtres']['content']['cover'] = cover
+    #    
+    #    liste.append(newItem)
+    #    
+    #    newItem = {   'genreId': 2, 
+    #                'nom': u("CHEZ NOUS"),
+    #                'resume': "Voir les épisodes",
+    #                'image' : "DefaultFolder.png",
+    #                'url' : "https://noovo.ca/emissions/occupation-double/chez-nous/episodes/",
+    #                'filtres' : parse.getCopy(filtres)
+    #            }
+    #            
+    #    newItem['filtres']['content']['url'] = "/emissions/occupation-double/chez-nous/episodes/"
+    #    newItem['filtres']['content']['cover'] = cover
+    #    
+    #    liste.append(newItem)
 
     for saison in saisons:
         newItem = {   'genreId': 2, 
@@ -602,6 +615,10 @@ def dictOfGenres(filtres):
         #log(carte.find('img'))
         
         image = carte.find('img')
+        
+        if(carte.find_all("a")[0]['href'] == "https://noovo.ca/emissions/occupation-double-chez-nous-la-selection-officielle-des-candidats"):
+            continue
+        
         srcImage = None
         
         if image != None :

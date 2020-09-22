@@ -28,11 +28,18 @@ def creer_liste_filtree():
     log("caca 0")
     log(filtres['content']['url'])
         
-    if "occupationdouble" in filtres['content']['url'] :
-        navig.ajouterItemAuMenu(content.loadListeSaisonOD(filtres))
-    elif "saison" in filtres['content']['url'] :
+    #if "occupationdouble" in filtres['content']['url'] :
+    #    navig.ajouterItemAuMenu(content.loadListeSaisonOD(filtres))
+    #el
+    if "saison" in filtres['content']['url'] :
         navig.ajouterItemAuMenu(content.loadEmission(filtres))
     elif "afrique-du-sud" in filtres['content']['url'] :
+        navig.ajouterItemAuMenu(content.loadEmission(filtres))
+    elif "chez-nous" in filtres['content']['url'] :
+        navig.ajouterItemAuMenu(content.loadEmission(filtres))
+    elif "bali" in filtres['content']['url'] :
+        navig.ajouterItemAuMenu(content.loadEmission(filtres))
+    elif "grece" in filtres['content']['url'] :
         navig.ajouterItemAuMenu(content.loadEmission(filtres))
     else:
         navig.ajouterItemAuMenu(content.loadListeSaison(filtres))
