@@ -156,10 +156,17 @@ def listerEqualiser(cartes,filtres):
         resume = u(carte.getText(" ",strip=True)) #PATCH
         log("resume: " + resume)
         
+        img = None
+        
+        try:
+            img = carte.find("img")['src']
+        except:
+            log("pas d'image")
+        
         newItem = {   'genreId': 1, 
                       'nom': nom,
                       'resume': resume,
-                      'image' : carte.find_all("img")[0]['src'],
+                      'image' : img,
                       'url' : correctEmissionPageURL(carte.find_all("a")[0]['href']),
                       'sourceUrl' : correctEmissionPageURL(carte.find_all("a")[0]['href']),
                       'duree' : duration,
