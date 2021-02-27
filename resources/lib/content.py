@@ -1,10 +1,21 @@
 # -*- coding: utf-8 -*-
 # encoding=utf8
 
-import urllib2, simplejson, parse, cache, re, xbmcaddon, html, xbmc, datetime, time
+import sys, simplejson, re, xbmcaddon, xbmc, datetime, time
+from . import parse, cache, html
 from bs4 import BeautifulSoup
-import urlparse
 
+if sys.version_info.major >= 3:
+    # Python 3 stuff
+    from urllib.parse import unquote, quote_plus, unquote_plus, urljoin, urlparse
+    from urllib.request import Request, urlopen
+    from io import StringIO as StringIO
+else:
+    # Python 2 stuff
+    from urlparse import urljoin, urlparse
+    from urllib import quote_plus, unquote_plus, unquote
+    from urllib2 import Request, urlopen
+    from StringIO import StringIO
 #import thread
 #import threading
 #from time import sleep
@@ -29,19 +40,19 @@ options = {
           }
           
 options2 = {
-           "SQ" : urlparse.urljoin(BASE_URL, "emissions/SQ"),
-           "911" : urlparse.urljoin(BASE_URL, "emissions/911"),
-           "code-111" : urlparse.urljoin(BASE_URL, "emissions/code-111"),
+           "SQ" : urljoin(BASE_URL, "emissions/SQ"),
+           "911" : urljoin(BASE_URL, "emissions/911"),
+           "code-111" : urljoin(BASE_URL, "emissions/code-111"),
           }
 
 # A simple task to do to each response object
 def do_something(response):
-    print response.url
+    log(response.url)
 
 def threaded_function(arg):
     for i in range(arg):
-        print "running"
-        sleep(1)
+        log("running")
+        time.sleep(1)
 
 def u(data):
     return data.encode("utf-8")
@@ -75,7 +86,7 @@ num_threads = 0
 def MyThread1(arg):
     global num_threads
     num_threads += 1
-    print "arg" + str(arg)
+    log("arg" + str(arg))
     cache.get_cached_content(correctEmissionPageURL(arg))
     num_threads -= 1
         
@@ -87,8 +98,6 @@ def getDescription(url):
     #thread.join()
     
     #thread.start_new_thread(MyThread1, (url, ))
-    
-    #print "next...exiting"
     
     return "NULL"
     try:
@@ -140,7 +149,7 @@ def listerEqualiser(cartes,filtres):
                     duration = time.strptime("0m 0s",'%Mm %Ss')
             duration = datetime.timedelta(hours=duration.tm_hour,minutes=duration.tm_min,seconds=duration.tm_sec).total_seconds()
         
-        print duration
+        log(duration)
         
         nom = ""
         try:
@@ -154,7 +163,7 @@ def listerEqualiser(cartes,filtres):
         
         log(nom)
         resume = u(carte.getText(" ",strip=True)) #PATCH
-        log("resume: " + resume)
+        log("resume: " + str(resume))
         
         img = None
         
@@ -183,7 +192,7 @@ def listerEqualiser(cartes,filtres):
     
         item['isDir']= False
         item['forceSort'] = False
-        item['nom']= urllib2.unquote(item['nom'])
+        item['nom']= item['nom']
         #item['url'] = item['url'] or None
         #item['image'] = item['image'] or xbmcaddon.Addon().getAddonInfo('path')+'/icon.png'
         item['fanart']=filtres['content']['cover']
@@ -226,8 +235,8 @@ def loadListeSaisonOD(filtres):
 
     liste = []
     
-    parsed = urlparse.urlparse(filtres['content']['url'])
-    print filtres['content']['url']
+    parsed = urlparse(filtres['content']['url'])
+    log(filtres['content']['url'])
     out = ""
     
     log("parsed.netloc")
@@ -239,7 +248,7 @@ def loadListeSaisonOD(filtres):
     #    out = "emissions/" + out
     #    filtres['content']['url'] = urlparse.urljoin(BASE_URL,out)
     
-    print filtres['content']['url']
+    log(filtres['content']['url'])
     
     data = cache.get_cached_content(filtres['content']['url'])
     soup = BeautifulSoup(data, 'html.parser')
@@ -279,7 +288,7 @@ def loadListeSaisonOD(filtres):
 
         item['isDir']= False
         item['forceSort'] = False
-        item['nom']= urllib2.unquote(item['nom'])
+        item['nom']= unquote(item['nom'])
         #item['url'] = item['url'] or None
         #item['image'] = item['image'] or xbmcaddon.Addon().getAddonInfo('path')+'/icon.png'
         item['fanart']="https://occupationdouble.noovo.ca/_/images/bg_banner1.jpg"
@@ -398,8 +407,8 @@ def loadListeSaison(filtres):
 
     liste = []
     
-    parsed = urlparse.urlparse(filtres['content']['url'])
-    print filtres['content']['url']
+    parsed = urlparse(filtres['content']['url'])
+    log(filtres['content']['url'])
     out = ""
     
     log("parsed.netloc")
@@ -411,7 +420,7 @@ def loadListeSaison(filtres):
     #    out = "emissions/" + out
     #    filtres['content']['url'] = urlparse.urljoin(BASE_URL,out)
     
-    print filtres['content']['url']
+    log(filtres['content']['url'])
     
     data = cache.get_cached_content(filtres['content']['url'])
     soup = BeautifulSoup(data, 'html.parser')
@@ -472,7 +481,7 @@ def loadListeSaison(filtres):
     for saison in saisons:
         newItem = {   'genreId': 2, 
                     'nom': u(saison.get_text(strip=True) + plot ),
-                    'resume': "Voir les épisodes de la " + u(saison.get_text(strip=True)),
+                    'resume': 'Voir les épisodes de la ' + parse.pyStr(saison.get_text(strip=True)),
                     'image' : "DefaultFolder.png",
                     'url' : saison['href'],
                     'filtres' : parse.getCopy(filtres)
@@ -500,7 +509,7 @@ def loadListeSaison(filtres):
     for item in liste :
         item['isDir']= True
         item['forceSort']= False
-        item['nom']= urllib2.unquote(item['nom'])
+        item['nom']= item['nom']
         #item['url'] = item['url'] or None
         item['image'] = item['image'] or xbmcaddon.Addon().getAddonInfo('path')+'/icon.png'
         item['fanart']= filtres['content']['cover'] #cover #xbmcaddon.Addon().getAddonInfo('path')+'/fanart.jpg'
@@ -566,8 +575,8 @@ def loadEmission(filtres):
         
     sections = soup.find_all("div", {'class': re.compile('video-equalizer')}) #|clip-equalizer
     
-    print "-----------------------------------------------"
-    print sections
+    log("-----------------------------------------------")
+    log(sections)
     
     if avecPagingation and not filtres['content']['afficherTous']:
         newItem = {   'genreId': i, 
@@ -644,12 +653,12 @@ def dictOfGenres(filtres):
         liste.append(newItem)
 
     for item in liste :
-        item['isDir']= True
+        item['isDir'] = True
         item['forceSort'] = True
-        item['nom']= urllib2.unquote(item['nom'])
+        item['nom'] = item['nom']
         #item['url'] = item['url'] or None
         item['image'] = item['image'] or xbmcaddon.Addon().getAddonInfo('path')+'/icon.png'
-        item['fanart']=xbmcaddon.Addon().getAddonInfo('path')+'/fanart.jpg'
+        item['fanart'] = xbmcaddon.Addon().getAddonInfo('path')+'/fanart.jpg'
         #item['filtres'] = parse.getCopy(filtres)
         item['filtres']['content']['genreId'] = item['genreId']
 
@@ -668,7 +677,7 @@ def dictOfMainDirs(filtres):
     for item in liste :
         item['isDir']= True
         item['forceSort'] = True
-        item['nom']= urllib2.unquote(item['nom'])
+        item['nom']= unquote(item['nom'])
         item['image']=xbmcaddon.Addon().getAddonInfo('path')+'/icon.png'
         item['fanart']=xbmcaddon.Addon().getAddonInfo('path')+'/fanart.jpg'
         item['filtres']= parse.getCopy(filtres)

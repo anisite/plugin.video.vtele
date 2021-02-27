@@ -4,12 +4,25 @@
 # version 2.0.2 - By SlySen
 # version 0.2.6 - By CB
 
-import re
-import socket, xbmc, xbmcaddon
-from StringIO import StringIO
-import urllib2, gzip
+import sys, re, socket
+import xbmc, xbmcaddon
+import gzip
 
+if sys.version_info.major >= 3:
+    # Python 3 stuff
+    from urllib.parse import quote_plus, unquote_plus
+    from urllib.request import Request, urlopen
+    from io import StringIO as StringIO
+else:
+    # Python 2 stuff
+    from urllib import quote_plus, unquote_plus
+    from urllib2 import Request, urlopen
+    from StringIO import StringIO
 
+try:
+    unichr
+except NameError:
+    unichr = chr
 
 # Merci à l'auteur de cette fonction
 def unescape_callback(matches):
@@ -67,7 +80,7 @@ def get_url_txt(the_url, pk=None):
     """ function docstring """
     log("--get_url_txt----START--")
     
-    req = urllib2.Request(the_url)
+    req = Request(the_url)
     
     if pk:
         req.add_header('Accept', 'application/json;pk=' + pk)
@@ -83,24 +96,33 @@ def get_url_txt(the_url, pk=None):
         req.add_header('Pragma', 'no-cache')
         req.add_header('Cache-Control', 'no-cache')
         
-    response = urllib2.urlopen(req)
+    response = urlopen(req)
 
-    data = ""
-    log("--encoding--")
-    log(response.info().get('Content-Encoding'))
-    
-    if response.info().get('Content-Encoding') == 'gzip':
-        buf = StringIO( response.read() )
-        f = gzip.GzipFile(fileobj=buf)
-        data = f.read()
-    else:
-        data = response.read()
-    
-    response.close()
+    data = handleHttpResponse(response)
     
     #log("--data--")
     #log(data)
     return data
+
+
+def handleHttpResponse(response):
+
+    if sys.version_info.major >= 3:
+        if response.info().get('Content-Encoding') == 'gzip':
+            f = gzip.GzipFile(fileobj=response)
+            data = f.read()
+            return data
+        else:
+            data = response.read()
+            return data
+    else:
+        if response.info().get('Content-Encoding') == 'gzip':
+            buf = StringIO( response.read() )
+            f = gzip.GzipFile(fileobj=buf)
+            data = f.read()
+            return data
+        else:
+            return response.read()
 
 
 def is_network_available(url):

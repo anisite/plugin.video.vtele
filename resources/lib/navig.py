@@ -9,8 +9,20 @@
 # vim......: set tabstop=4
 #
 
-import sys,urllib, xbmcgui, xbmcplugin, xbmcaddon,re,cache, simplejson, xbmc, html
+import sys, xbmcgui, xbmcplugin, xbmcaddon, re, simplejson, xbmc
+from . import cache, html, parse
 from bs4 import BeautifulSoup
+
+if sys.version_info.major >= 3:
+    # Python 3 stuff
+    from urllib.parse import quote_plus, unquote, quote
+    from urllib.request import Request, urlopen
+    from io import StringIO as StringIO
+else:
+    # Python 2 stuff
+    from urllib import quote_plus, unquote, quote
+    from urllib2 import Request, urlopen
+    from StringIO import StringIO
 
 ADDON = xbmcaddon.Addon()
 ADDON_IMAGES_BASEPATH = ADDON.getAddonInfo('path')+'/resources/media/images/'
@@ -39,31 +51,32 @@ def ajouterItemAuMenu(items):
 
 
 def ajouterRepertoire(show):
-    #print "--Show image--"
-    #print show
-    
+   
     nom = show['nom']
     url = show['url']
     iconimage =show['image']
-    genreId = show['genreId']
+    #genreId = show['genreId']
     resume = remove_any_html_tags(show['resume'])
     fanart = show['fanart']
     filtres = show['filtres']
 
     if resume=='':
-        resume = urllib.unquote(ADDON.getAddonInfo('id')+' v.'+ADDON.getAddonInfo('version'))
+        resume = unquote(ADDON.getAddonInfo('id')+' v.'+ADDON.getAddonInfo('version'))
     if ADDON.getSetting('EmissionNameInPlotEnabled') == 'true':
-        resume = '[B]'+nom+'[/B][CR]'+urllib.unquote(resume)
+        resume = "[B]"+ str(nom) +"[/B][CR]" + unquote(resume)
     if iconimage=='':
         iconimage = ADDON_IMAGES_BASEPATH+'default-folder.png'
 
     """ function docstring """
     entry_url = sys.argv[0]+"?url="+url+\
         "&mode=1"+\
-        "&filters="+urllib.quote(simplejson.dumps(filtres))
+        "&filters="+quote(simplejson.dumps(filtres))
   
     is_it_ok = True
-    liz = xbmcgui.ListItem(nom,iconImage=iconimage,thumbnailImage=iconimage)
+    #liz = xbmcgui.ListItem(nom,iconImage=iconimage,thumbnailImage=iconimage)
+    liz = xbmcgui.ListItem(nom)
+
+    liz.setArt({ 'thumb' : iconimage } )
 
     liz.setInfo(\
         type="Video",\
@@ -87,13 +100,11 @@ def setFanart(liz,fanart):
 
 
 def ajouterVideo(show):
-    name = show['nom']
+    name = show['nom'].decode('utf-8')
     the_url = show['url']
     iconimage = show['image']
-    url_info = 'none'
-    finDisponibilite = show['endDateTxt']
 
-    resume = show['resume'] #remove_any_html_tags(show['resume'] +'[CR][CR]' + finDisponibilite)
+    resume = show['resume'].decode('utf-8') #remove_any_html_tags(show['resume'] +'[CR][CR]' + finDisponibilite)
     duree = show['duree']
     fanart = show['fanart']
     sourceUrl = show['sourceUrl']
@@ -103,7 +114,7 @@ def ajouterVideo(show):
     saison = show['seasonNo']
     
     is_it_ok = True
-    entry_url = sys.argv[0]+"?url="+urllib.quote_plus(the_url)+"&sourceUrl="+urllib.quote_plus(sourceUrl)
+    entry_url = sys.argv[0]+"?url="+quote_plus(the_url)+"&sourceUrl="+quote_plus(sourceUrl)
 
     #if resume != '':
     #    if ADDON.getSetting('EmissionNameInPlotEnabled') == 'true':
@@ -111,8 +122,13 @@ def ajouterVideo(show):
     #else:
     #    resume = name.lstrip()
 
-    liz = xbmcgui.ListItem(\
-        remove_any_html_tags(name), iconImage=ADDON_IMAGES_BASEPATH+"default-video.png", thumbnailImage=iconimage)
+    #liz = xbmcgui.ListItem(\
+    #    remove_any_html_tags(name), iconImage=ADDON_IMAGES_BASEPATH+"default-video.png", thumbnailImage=iconimage)
+
+    liz = xbmcgui.ListItem(remove_any_html_tags(name))
+
+    liz.setArt({ 'thumb' : iconimage } )
+
     liz.setInfo(\
         type="Video",\
         infoLabels={\
@@ -209,10 +225,10 @@ def check_for_internet_connection():
 
 def remove_any_html_tags(text, crlf=True):
     """ function docstring """
-    text = RE_HTML_TAGS.sub('', text)
+    text = RE_HTML_TAGS.sub('', parse.pyStr(text, True))
     text = text.lstrip()
     if crlf == True:
-        text = RE_AFTER_CR.sub('', text)
+        text = RE_AFTER_CR.sub('', parse.pyStr(text, True))
     return text
 
 def obtenirMeilleurStream(pl):

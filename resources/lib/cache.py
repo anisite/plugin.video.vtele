@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import xbmcaddon, os, xbmc, time, sys, html, simplejson
+import xbmcaddon, os, xbmc, time, sys, simplejson
+
+from . import html
 
 ADDON = xbmcaddon.Addon()
 
-ADDON_CACHE_BASEDIR = os.path.join(xbmc.translatePath(ADDON.getAddonInfo('path')).decode('utf-8'), ".cache")
+ADDON_CACHE_BASEDIR = os.path.join(xbmc.translatePath(ADDON.getAddonInfo('path')), ".cache")
 ADDON_CACHE_TTL = float(ADDON.getSetting('CacheTTL').replace("0", ".5").replace("73", "0"))
 
 if not os.path.exists(ADDON_CACHE_BASEDIR):
@@ -14,7 +16,6 @@ if sys.version >= "2.5":
     from hashlib import md5 as _hash
 else:
     from md5 import new as _hash
-
 
 def is_cached_content_expired(last_update):
     """ function docstring """
@@ -33,14 +34,15 @@ def get_policykey(account, player, embed):
     log(load["video_cloud"])
     log(load["video_cloud"]["policy_key"])
     
-    return load["video_cloud"]["policy_key"];
+    return load["video_cloud"]["policy_key"]
 
 def get_cached_content(path):
     """ function docstring """
     log("--get_cached_content----START--")
     return html.get_url_txt(path)
-    content = None
-    try:
+
+"""    content = None
+     try:
         filename = get_cached_filename(path)
         if os.path.exists(filename) and not is_cached_content_expired(os.path.getmtime(filename)):
             content = open(filename).read()
@@ -52,7 +54,7 @@ def get_cached_content(path):
                 traceback.print_exc()
     except StandardError:
         return None
-    return content
+    return content """
 
 def get_cached_filename(path):
     """ function docstring """
