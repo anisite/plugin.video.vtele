@@ -10,7 +10,7 @@
 #
 
 import sys, xbmcgui, xbmcplugin, xbmcaddon, re, xbmc
-from . import cache, html, parse
+from . import html, parse
 import inputstreamhelper
 
 if sys.version_info.major >= 3:

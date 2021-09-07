@@ -2,7 +2,7 @@
 # encoding=utf8
 
 import sys, re, xbmcaddon, xbmc, datetime, time
-from . import parse, cache, html
+from . import parse, html
 
 if sys.version_info.major >= 3:
     # Python 3 stuff
@@ -20,6 +20,12 @@ try:
     import json
 except ImportError:
     import simplejson as json
+
+try:
+   import StorageServer
+except:
+   import storageserverdummy as StorageServer
+cache = StorageServer.StorageServer("noovo.plugin", 48) # (Your plugin name, Cache time in hours)
 
 BASE_HOST = 'noovo.ca'
 BASE_URL = 'https://' + BASE_HOST
@@ -210,7 +216,8 @@ def dictOfGenres(filtres):
         print(i)
 
         post_grid = '{"operationName":"grid","variables":{"sorting":"DEFAULT","gridId":"contentid/MDRlOTVkOWItYmY3Zi00","page":'+str(i)+',"subscriptions":["CANAL_D","CANAL_VIE","INVESTIGATION","NOOVO","VRAK","Z"],"maturity":"ADULT","language":"FRENCH","authenticationState":"UNAUTH","playbackLanguage":"FRENCH"},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"'+html.hash_256('MDRlOTVkOWItYmY3Zi00' + str(i))+'"}},"query":"query grid($gridId: ID!, $page: Int, $mode: CollectionMode, $subscriptions: [Subscription]!, $maturity: Maturity!, $language: Language!, $authenticationState: AuthenticationState!, $playbackLanguage: PlaybackLanguage!, $filterSelection: [FilterSelectionInput], $sorting: Sorting = DEFAULT) @uaContext(subscriptions: $subscriptions, maturity: $maturity, language: $language, authenticationState: $authenticationState, playbackLanguage: $playbackLanguage) {\n  contentData: grid(id: $gridId) {\n    id\n    title\n    config {\n      ...GridConfigData\n      __typename\n    }\n    customLink {\n      linkLabel\n      renderAs\n      internalContent {\n        title\n        id\n        ... on AceWebContent {\n          path\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    collection(mode: $mode, sorting: $sorting) {\n      appliedSortMethod\n      ...GridCollectionData\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment GridCollectionData on Collection {\n  page(page: $page, filterSelection: $filterSelection) {\n    filterSelection {\n      filter\n      selectedIds\n      __typename\n    }\n    filtersResult {\n      filters {\n        filter\n        counts {\n          id\n          count\n          name\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    totalItemCount\n    hasNextPage\n    hasPreviousPage\n    items {\n      id\n      title\n      ... on AxisObject {\n        axisId\n        summary\n        posterImages: images(formats: POSTER) {\n          url\n          __typename\n        }\n        thumbnailImages: images(formats: THUMBNAIL) {\n          url\n          __typename\n        }\n        thumbnailWideImages: images(formats: THUMBNAIL_WIDE) {\n          url\n          __typename\n        }\n        squareImages: images(formats: SQUARE) {\n          url\n          __typename\n        }\n        __typename\n      }\n      ... on AxisCollection {\n        path\n        __typename\n      }\n      ... on AxisContent {\n        axisId\n        duration\n        pathSegment\n        seasonNumber\n        episodeNumber\n        path\n        authConstraints {\n          authRequired\n          packageName\n          subscriptionName\n          __typename\n        }\n        axisMedia {\n          id\n          title\n          axisId\n          mediaType\n          path\n          genres {\n            name\n            __typename\n          }\n          firstAirYear\n          __typename\n        }\n        contentType\n        flag {\n          title\n          label\n          __typename\n        }\n        __typename\n      }\n      ... on AxisMedia {\n        agvotCode\n        qfrCode\n        firstAirYear\n        genres {\n          name\n          __typename\n        }\n        originatingNetworkLogoId\n        heroBrandLogoId\n        seasons {\n          id\n          __typename\n        }\n        metadataUpgrade {\n          userIsSubscribed\n          packageName\n          __typename\n        }\n        firstPlayableContent {\n          id\n          axisId\n          path\n          authConstraints {\n            authRequired\n            subscriptionName\n            __typename\n          }\n          flag {\n            title\n            label\n            __typename\n          }\n          __typename\n        }\n        flag {\n          title\n          label\n          __typename\n        }\n        path\n        __typename\n      }\n      ... on Link {\n        ...LinkData\n        __typename\n      }\n      ... on Article {\n        path\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment GridConfigData on GridConfig {\n  sortingEnabled\n  availableSortingOptions\n  filterEnabled\n  displayTitle\n  displayTotalItemCount\n  numberOfColumns\n  style\n  imageFormat\n  lightbox\n  paging {\n    pageSize\n    pagingType\n    __typename\n  }\n  hideMediaTitle\n  __typename\n}\n\nfragment LinkData on Link {\n  urlParameters\n  renderAs\n  linkType\n  linkLabel\n  longLinkLabel\n  linkTarget\n  userMgmtLinkType\n  url\n  id\n  internalContent {\n    id\n    title\n    __typename\n    ... on AceWebContent {\n      path\n      pathSegment\n      __typename\n    }\n    ... on Section {\n      pathSegment\n      id\n      __typename\n    }\n    ... on AxisObject {\n      axisId\n      title\n      __typename\n    }\n    ... on TabItem {\n      id\n      sectionPath\n      __typename\n    }\n  }\n  hoverImage {\n    title\n    imageType\n    url\n    __typename\n  }\n  image {\n    id\n    width\n    height\n    title\n    url\n    __typename\n  }\n  bannerImages {\n    breakPoint\n    image {\n      id\n      title\n      url\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n"}'
-        test = html.get_graphql_data(post_grid)
+        #test = html.get_graphql_data(post_grid)
+        test = cache.cacheFunction(html.get_graphql_data, post_grid)
 
         log("---data----")
 
@@ -274,21 +281,6 @@ def dictOfMainDirs(filtres):
         item['filtres']['fullNameItems'].append('nomDuShow')        
     return liste
 
-def get_liste(categorie):
-    if categorie >= 0:
-        liste = getJsonBlock(AZ_URL, 0)
-        if categorie == 0:
-            return liste
-        listeFiltree = []
-        for show in liste:
-            if isGenre(categorie, show):
-                listeFiltree.append(show)
-
-        return listeFiltree
-    if categorie == -1:
-        return getJsonBlock(DOSSIERS_URL, 1)
-    return {}
-
 def isGenre(genreValue, show):
     genres = show['genres']
     for genre in genres:
@@ -308,19 +300,6 @@ def getFanArt(show):
     thumbLink = re.sub('{w}', '1280', thumbLink)
     thumbLink = re.sub('{h}', '720', thumbLink)
     return thumbLink
-
-def getShow(mediaBundleId):
-    database = json.loads(cache.get_cached_content(MEDIA_BUNDLE_URL + str(mediaBundleId)))
-    return database['data']
-
-def getJsonBlock(url, block):
-    try:
-        dataBlock = json.loads(cache.get_cached_content(url))
-        dataBlock = dataBlock['data'][block]['items']
-    except ValueError:
-        dataBlock = []
-    finally:
-        return dataBlock
 
 def log(msg):
     """ function docstring """
