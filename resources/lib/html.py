@@ -84,8 +84,11 @@ def html_unescape(data):
     data = data.encode('utf-8')
     return data
 
+def u(data):
+    return data.encode("utf-8")
+
 def hash_256(contentId):
-    hash_object = hashlib.sha256(contentId)
+    hash_object = hashlib.sha256(u(contentId))
     return hash_object.hexdigest()
 
 def POST_HTML(url, POST, AUTH=False, METHOD="POST"):
@@ -93,7 +96,7 @@ def POST_HTML(url, POST, AUTH=False, METHOD="POST"):
     cookiejar = cookielib.LWPCookieJar()
     cookie_handler = HTTPCookieProcessor(cookiejar)
     opener = build_opener(cookie_handler)
-    post_data = POST #json.dumps(POST)
+    post_data = u(POST) #json.dumps(POST)
 
     opener.addheaders = [
     ('accept', '*/*'),

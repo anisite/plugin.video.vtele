@@ -128,8 +128,8 @@ def loadListeSaison(filtres):
 
     for saison in saisons:
         newItem = {   'genreId': 2, 
-                    'nom': u(jsonMedia['data']['contentData']['title'] + ' - ' + saison['title']),
-                    'resume': u(jsonMedia['data']['contentData']['summary']) + '\r\n' + u(jsonMedia['data']['contentData']['description']),
+                    'nom': jsonMedia['data']['contentData']['title'] + ' - ' + saison['title'],
+                    'resume': jsonMedia['data']['contentData']['summary'] + '\r\n' + jsonMedia['data']['contentData']['description'],
                     'image' : jsonMedia['data']['contentData']['thumbnailImages'][0]['url'] or "DefaultFolder.png",
                     'url' : saison['id'],
                     'filtres' : parse.getCopy(filtres)
