@@ -180,12 +180,31 @@ def loadEmission(filtres):
 
     return liste
 
-    
+# accueil
 def dictOfGenres(filtres):
 
     liste = []
     
     i=0
+
+    newItem = {   'genreId': 1, 
+                'nom': u('[COLOR gold][B]Noovo - En direct[/B][/COLOR]'),
+                'resume': u('Regarder Noovo en direct'), #getDescription(carte.find_all("a")[0]['href']),
+                'image' :  None,
+                'fanart':  None,
+                'isDir' : False,
+                'duree' : -1,
+                'sourceUrl': 'direct',
+                'startDate' : None,
+                'episodeNo' : 0,
+                'seasonNo' : 0,
+                'url' : 'direct',#correctEmissionPageURL(carte.find_all("a")[0]['href'], u(carte.get_text(strip=True))),
+                'filtres' : parse.getCopy(filtres)
+            }
+            
+    newItem['filtres']['content']['url'] = newItem['url']
+    
+    liste.append(newItem)
 
     while True:
         print(i)
@@ -216,6 +235,7 @@ def dictOfGenres(filtres):
                         'resume': u(carte['summary']), #getDescription(carte.find_all("a")[0]['href']),
                         'image' :  carte['posterImages'][0]['url'],
                         'fanart':  carte['thumbnailImages'][0]['url'],
+                        'isDir' : True,
                         'url' : carte['id'],#correctEmissionPageURL(carte.find_all("a")[0]['href'], u(carte.get_text(strip=True))),
                         'filtres' : parse.getCopy(filtres)
                     }
@@ -227,8 +247,7 @@ def dictOfGenres(filtres):
         i += 1
 
     for item in liste :
-        item['isDir'] = True
-        item['forceSort'] = True
+        item['forceSort'] = False
         item['nom'] = item['nom']
         #item['url'] = item['url'] or None
         item['image'] = item['image'] or xbmcaddon.Addon().getAddonInfo('path')+'/icon.png'
