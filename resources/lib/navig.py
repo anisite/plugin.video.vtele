@@ -68,8 +68,7 @@ def ajouterRepertoire(show):
 
     if resume=='':
         resume = unquote(ADDON.getAddonInfo('id')+' v.'+ADDON.getAddonInfo('version'))
-    if ADDON.getSetting('EmissionNameInPlotEnabled') == 'true':
-        resume = "[B]"+ str(nom) +"[/B][CR]" + unquote(resume)
+
     if iconimage=='':
         iconimage = ADDON_IMAGES_BASEPATH+'default-folder.png'
 
