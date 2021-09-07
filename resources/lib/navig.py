@@ -9,9 +9,9 @@
 # vim......: set tabstop=4
 #
 
-import sys, xbmcgui, xbmcplugin, xbmcaddon, re, simplejson, xbmc
+import sys, xbmcgui, xbmcplugin, xbmcaddon, re, xbmc
 from . import cache, html, parse
-from bs4 import BeautifulSoup
+import inputstreamhelper
 
 if sys.version_info.major >= 3:
     # Python 3 stuff
@@ -24,7 +24,13 @@ else:
     from urllib2 import Request, urlopen
     from StringIO import StringIO
 
+try:
+    import json
+except ImportError:
+    import simplejson as json
+
 ADDON = xbmcaddon.Addon()
+BUILD_NUMBER      = int(xbmc.getInfoLabel('System.BuildVersion').split('.')[0])
 ADDON_IMAGES_BASEPATH = ADDON.getAddonInfo('path')+'/resources/media/images/'
 ADDON_FANART = ADDON.getAddonInfo('path')+'/fanart.jpg'
 THEPLATFORM_CONTENT_URL = "https://edge.api.brightcove.com/playback/v1/accounts/618566855001/videos/"
@@ -70,7 +76,7 @@ def ajouterRepertoire(show):
     """ function docstring """
     entry_url = sys.argv[0]+"?url="+url+\
         "&mode=1"+\
-        "&filters="+quote(simplejson.dumps(filtres))
+        "&filters="+quote(json.dumps(filtres))
   
     is_it_ok = True
     #liz = xbmcgui.ListItem(nom,iconImage=iconimage,thumbnailImage=iconimage)
@@ -100,11 +106,11 @@ def setFanart(liz,fanart):
 
 
 def ajouterVideo(show):
-    name = show['nom'].decode('utf-8')
+    name = show['nom']
     the_url = show['url']
     iconimage = show['image']
 
-    resume = show['resume'].decode('utf-8') #remove_any_html_tags(show['resume'] +'[CR][CR]' + finDisponibilite)
+    resume = show['resume'] #remove_any_html_tags(show['resume'] +'[CR][CR]' + finDisponibilite)
     duree = show['duree']
     fanart = show['fanart']
     sourceUrl = show['sourceUrl']
@@ -157,62 +163,43 @@ def jouer_video(source_url):
     
     log("--media_uid--")
     log(source_url)
+    graph_content = '{"operationName":"axisContent","variables":{"id":"'+source_url+'","subscriptions":["CANAL_D","CANAL_VIE","INVESTIGATION","NOOVO","VRAK","Z"],"maturity":"ADULT","language":"FRENCH","authenticationState":"UNAUTH","playbackLanguage":"FRENCH"},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"'+html.hash_256(source_url)+'"}},"query":"query axisContent($id: ID!, $subscriptions: [Subscription]!, $maturity: Maturity!, $language: Language!, $authenticationState: AuthenticationState!, $playbackLanguage: PlaybackLanguage!) @uaContext(subscriptions: $subscriptions, maturity: $maturity, language: $language, authenticationState: $authenticationState, playbackLanguage: $playbackLanguage) {\n  axisContent(id: $id) {\n    axisId\n    id\n    path\n    title\n    duration\n    agvotCode\n    description\n    episodeNumber\n    seasonNumber\n    pathSegment\n    genres {\n      name\n      __typename\n    }\n    axisMedia {\n      id\n      title\n      __typename\n    }\n    adUnit {\n      heroBrand\n      analyticsTitle\n      pageType\n      product\n      revShare\n      title\n      keyValue {\n        adTarget\n        contentType\n        mediaType\n        pageTitle\n        revShare\n        __typename\n      }\n      __typename\n    }\n    authConstraints {\n      authRequired\n      language\n      startDate\n      endDate\n      __typename\n    }\n    axisPlaybackLanguages {\n      destinationCode\n      language\n      duration\n      __typename\n    }\n    originalSpokenLanguage\n    ogFields {\n      ogDescription\n      ogImages {\n        url\n        __typename\n      }\n      ogTitle\n      __typename\n    }\n    seoFields {\n      seoDescription\n      seoTitle\n      seoKeywords\n      __typename\n    }\n    flag {\n      title\n      label\n      __typename\n    }\n    posterImages: images(formats: POSTER) {\n      url\n      __typename\n    }\n    broadcastDate\n    expiresOn\n    startsOn\n    keywords\n    __typename\n  }\n}\n"}'
     
+    media_response = html.get_graphql_data(graph_content)
+    
+    video_id = str(media_response['data']['axisContent']['axisId'])
+    log(video_id)
 
-    
-    data = cache.get_cached_content(source_url)
-    
-    ## Obtenir JSON avec liens RTMP du playlistService
-    #video_json = simplejson.loads(\
-    #    cache.get_cached_content(\
-    #        'http://production.ps.delve.cust.lldns.net/r/PlaylistService/media/%s/getPlaylistByMediaId' % media_uid\
-    #    )\
-    #)
-    #
-    #play_list_item =video_json['playlistItems'][0]
-    #
-    ## Obtient les streams dans un playlist m3u8
-    #m3u8_pl=cache.get_cached_content('https://mnmedias.api.telequebec.tv/m3u8/%s.m3u8' % play_list_item['refId'])
-    #
-    ## Cherche le stream de meilleure qualité
-    #uri = obtenirMeilleurStream(m3u8_pl)   
+    package = html.get_url_txt('https://capi.9c9media.com/destinations/noovo_hub/platforms/desktop/contents/'+video_id+'/contentpackages?$lang=fr&$include=[duration]')
+    json_package = json.loads(package)
 
-    soup = BeautifulSoup(data, 'html.parser')
-    videoXYZ = soup.find("video-js")
+    package_id = str(json_package['Items'][0]['Id'])
+
+    uri = 'https://capi.9c9media.com/destinations/noovo_hub/platforms/desktop/bond/contents/'+video_id+'/contentpackages/'+package_id+'/manifest.mpd'
     
-    if videoXYZ is None:
-     video = soup.find("video")
-    else:
-     video = soup.find("video-js")
-    
-    
-    log("policy key")
     #get_policykey(account, player):
-    policyKey = cache.get_policykey(video['data-account'], video['data-player'], video['data-embed'])
-    log(policyKey)
-    
-    #Obtenir le fichier de flux
-    uri = THEPLATFORM_CONTENT_URL + video['data-video-id']
-    
-    content = html.get_url_txt(uri, policyKey)
-    jsonData = simplejson.loads(content)
-    
-    strSrcUrl = ""
-    
-    bitrate = 0
-    
-    uri = jsonData['sources'][0]['src']
-    
-    for source in jsonData['sources']:
-        if 'avg_bitrate' in source:
-            if source['avg_bitrate'] > bitrate:
-                bitrate = source['avg_bitrate']
-                uri = source['src']
-
+    #policyKey = cache.get_policykey(video['data-account'], video['data-player'], video['data-embed'])
+    #log(policyKey)
+    PROTOCOL = 'mpd'
+    DRM = 'com.widevine.alpha'
+    listitem = xbmcgui.ListItem(path=uri)
+    url = uri
+    is_helper = inputstreamhelper.Helper(PROTOCOL, drm=DRM)
+    if is_helper.check_inputstream():
+        listitem.setProperty('path', url)
+        if BUILD_NUMBER >= 19:
+            listitem.setProperty('inputstream', is_helper.inputstream_addon)
+        else:
+            listitem.setProperty('inputstreamaddon', is_helper.inputstream_addon)
+        listitem.setProperty('inputstream.adaptive.manifest_type', PROTOCOL)
+        listitem.setMimeType('application/dash+xml')
+        listitem.setProperty('inputstream.adaptive.license_type', DRM)
+        listitem.setProperty('inputstream.adaptive.license_key', 'https://license.9c9media.ca/widevine' + '||R{SSM}|')
+        #listitem.setProperty('inputstream.stream_headers', 'Authorization=' + BEARER)
     
     # lance le stream
     if uri:
-        play_item = xbmcgui.ListItem(path=uri)
+        play_item = listitem
         xbmcplugin.setResolvedUrl(__handle__,True, play_item)
     else:
         xbmc.executebuiltin('Notification(%s,Incapable d''obtenir lien du video,5000,%s')

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import xbmcaddon, os, xbmc, time, sys, simplejson
+import xbmcaddon, os, xbmc, time, sys
 
 from . import html
 
@@ -17,6 +17,11 @@ if sys.version >= "2.5":
 else:
     from md5 import new as _hash
 
+try:
+    import json
+except ImportError:
+    import simplejson as json
+
 def is_cached_content_expired(last_update):
     """ function docstring """
     expired = time.time() >= (last_update + (ADDON_CACHE_TTL * 60**2))
@@ -29,7 +34,7 @@ def get_policykey(account, player, embed):
     #
     POLICY_CACHE_URL = "https://players.brightcove.net/" + account + "/" + player + "_" + embed + "/config.json"
     
-    load = simplejson.loads(get_cached_content(POLICY_CACHE_URL))
+    load = json.loads(get_cached_content(POLICY_CACHE_URL))
     log(load)
     log(load["video_cloud"])
     log(load["video_cloud"]["policy_key"])

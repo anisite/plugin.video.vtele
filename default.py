@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import os, urllib, sys, traceback, xbmcplugin, xbmcaddon, xbmc, simplejson, xbmcgui
+import os, urllib, sys, traceback, xbmcplugin, xbmcaddon, xbmc, xbmcgui
 
-from bs4 import BeautifulSoup
 from resources.lib import content, parse, navig
 
 if sys.version_info.major >= 3:
@@ -11,6 +10,11 @@ if sys.version_info.major >= 3:
 else:
     # Python 2 stuff
     from urllib import quote_plus, unquote_plus, unquote
+
+try:
+    import json
+except ImportError:
+    import simplejson as json
 
 ADDON = xbmcaddon.Addon()
 
@@ -26,29 +30,31 @@ def creer_menu_categories():
     """ function docstring """
     navig.ajouterItemAuMenu(content.dictOfMainDirs(filtres))
     navig.ajouterItemAuMenu(content.dictOfGenres(filtres))
-    xbmc.executebuiltin('Container.SetViewMode(500)') # "Info-wall" view. 
+    xbmc.executebuiltin('Container.SetViewMode(55)') # "Info-wall" view. 
+    #xbmcplugin.setContent(plugin.handle, 'movies')
 
 def creer_liste_filtree():
     """ function docstring """
     log("---creer_liste_filtree--START----")
-    log("caca 0")
     log(filtres['content']['url'])
         
     #if "occupationdouble" in filtres['content']['url'] :
     #    navig.ajouterItemAuMenu(content.loadListeSaisonOD(filtres))
     #el
-    if "saison" in filtres['content']['url'] :
-        navig.ajouterItemAuMenu(content.loadEmission(filtres))
-    elif "afrique-du-sud" in filtres['content']['url'] :
-        navig.ajouterItemAuMenu(content.loadEmission(filtres))
-    elif "chez-nous" in filtres['content']['url'] :
-        navig.ajouterItemAuMenu(content.loadEmission(filtres))
-    elif "bali" in filtres['content']['url'] :
-        navig.ajouterItemAuMenu(content.loadEmission(filtres))
-    elif "grece" in filtres['content']['url'] :
-        navig.ajouterItemAuMenu(content.loadEmission(filtres))
-    else:
+    if "contentid/axis-media-" in filtres['content']['url'] :
         navig.ajouterItemAuMenu(content.loadListeSaison(filtres))
+    elif "contentid/axis-season-" in filtres['content']['url'] :
+        navig.ajouterItemAuMenu(content.loadEmission(filtres))
+    #elif "contentid/axis-content-" in filtres['content']['url'] :
+    #    navig.ajouterItemAuMenu(content.loadEmission(filtres))
+    #elif "bali" in filtres['content']['url'] :
+    #    navig.ajouterItemAuMenu(content.loadEmission(filtres))
+    #elif "grece" in filtres['content']['url'] :
+    #    navig.ajouterItemAuMenu(content.loadEmission(filtres))
+    else:
+        nothing = 1
+    
+    
     xbmc.executebuiltin('Container.SetViewMode(55)') # "Info-wall" view. 
 
 
@@ -125,7 +131,7 @@ try:
 except Exception:
     pass
 
-filtres = simplejson.loads(FILTERS)
+filtres = json.loads(FILTERS)
    
 if SOURCE_URL !='':
     navig.jouer_video(SOURCE_URL)
