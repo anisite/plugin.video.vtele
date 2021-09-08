@@ -17,46 +17,35 @@ except ImportError:
     import simplejson as json
 
 ADDON = xbmcaddon.Addon()
+_HANDLE = int(sys.argv[1])
 
 def peupler():
-    if filtres['content']['mediaBundleId']>0:
-        creer_liste_videos()
-    elif filtres['content']['genreId']!='':
+    if filtres['content']['genreId']!='':
         creer_liste_filtree()
+        set_content('episodes')
+        #xbmc.executebuiltin('Container.SetViewMode(54)') # "Info-wall" view.
     else:
         creer_menu_categories()
+        set_content('tvshows')
+        xbmc.executebuiltin('Container.SetViewMode(54)') # "Info-wall" view.
+
 
 def creer_menu_categories():
     """ function docstring """
     navig.ajouterItemAuMenu(content.dictOfMainDirs(filtres))
     navig.ajouterItemAuMenu(content.dictOfGenres(filtres))
-    xbmc.executebuiltin('Container.SetViewMode(55)') # "Info-wall" view. 
-    #xbmcplugin.setContent(plugin.handle, 'movies')
 
 def creer_liste_filtree():
     """ function docstring """
     log("---creer_liste_filtree--START----")
     log(filtres['content']['url'])
-        
-    #if "occupationdouble" in filtres['content']['url'] :
-    #    navig.ajouterItemAuMenu(content.loadListeSaisonOD(filtres))
-    #el
+
     if "contentid/axis-media-" in filtres['content']['url'] :
         navig.ajouterItemAuMenu(content.loadListeSaison(filtres))
     elif "contentid/axis-season-" in filtres['content']['url'] :
         navig.ajouterItemAuMenu(content.loadEmission(filtres))
-    #elif "contentid/axis-content-" in filtres['content']['url'] :
-    #    navig.ajouterItemAuMenu(content.loadEmission(filtres))
-    #elif "bali" in filtres['content']['url'] :
-    #    navig.ajouterItemAuMenu(content.loadEmission(filtres))
-    #elif "grece" in filtres['content']['url'] :
-    #    navig.ajouterItemAuMenu(content.loadEmission(filtres))
     else:
         nothing = 1
-    
-    
-    xbmc.executebuiltin('Container.SetViewMode(55)') # "Info-wall" view. 
-
 
 def creer_liste_videos():
     """ function docstring """
@@ -141,7 +130,7 @@ elif MODE == 99:
     
 else:
     peupler()
-    set_content('episodes')
+    #set_content('episodes')
 
 
 if MODE != 99:

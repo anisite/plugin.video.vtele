@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # encoding=utf8
 
-import sys, re, xbmcaddon, xbmc, datetime, time
+import sys, re, xbmcaddon, xbmc, xbmcplugin, datetime, time
 from . import parse, html
 
 if sys.version_info.major >= 3:
@@ -29,6 +29,7 @@ cache = StorageServer.StorageServer("noovo.plugin", 48) # (Your plugin name, Cac
 
 BASE_HOST = 'noovo.ca'
 BASE_URL = 'https://' + BASE_HOST
+__handle__ = int(sys.argv[1])
 
 AZ_URL = ''
 DOSSIERS_URL = ''
@@ -131,10 +132,12 @@ def loadListeSaison(filtres):
     cover = xbmcaddon.Addon().getAddonInfo('path')+'/fanart.jpg'
 
     filtres['content']['cover'] = cover
+    filtres['content']['tvshow'] = jsonMedia['data']['contentData']['title']
+    xbmcplugin.setPluginCategory(__handle__, jsonMedia['data']['contentData']['title'])
 
     for saison in saisons:
         newItem = {   'genreId': 2, 
-                    'nom': jsonMedia['data']['contentData']['title'] + ' - ' + saison['title'],
+                    'nom': saison['title'],
                     'resume': jsonMedia['data']['contentData']['summary'] + '\r\n' + jsonMedia['data']['contentData']['description'],
                     'image' : jsonMedia['data']['contentData']['thumbnailImages'][0]['url'] or "DefaultFolder.png",
                     'url' : saison['id'],
@@ -143,6 +146,8 @@ def loadListeSaison(filtres):
                 
         newItem['filtres']['content']['url'] = saison['id']
         newItem['filtres']['content']['cover'] = cover
+        newItem['filtres']['content']['saison'] = saison['title']
+
         
         liste.append(newItem)
 
@@ -181,8 +186,9 @@ def loadEmission(filtres):
 
     log("--content--")
     log(emissions['data']['axisSeason'])
+    xbmcplugin.setPluginCategory(__handle__, filtres['content']['tvshow'])
 
-    liste = liste + listerEqualiser(emissions['data']['axisSeason']['episodes'],filtres)
+    liste = liste + listerEqualiser(emissions['data']['axisSeason']['episodes'], filtres)
 
     return liste
 
@@ -194,8 +200,8 @@ def dictOfGenres(filtres):
     i=0
 
     newItem = {   'genreId': 1, 
-                'nom': u('[COLOR gold][B]Noovo - En direct[/B][/COLOR]'),
-                'resume': u('Regarder Noovo en direct'), #getDescription(carte.find_all("a")[0]['href']),
+                'nom': '[COLOR gold][B]Noovo - En direct[/B][/COLOR]',
+                'resume': 'Regarder Noovo en direct', #getDescription(carte.find_all("a")[0]['href']),
                 'image' :  None,
                 'fanart':  None,
                 'isDir' : False,
@@ -238,8 +244,8 @@ def dictOfGenres(filtres):
                     continue
 
             newItem = {   'genreId': i+1, 
-                        'nom': u(carte['title']),
-                        'resume': u(carte['summary']), #getDescription(carte.find_all("a")[0]['href']),
+                        'nom': carte['title'],
+                        'resume': carte['summary'], #getDescription(carte.find_all("a")[0]['href']),
                         'image' :  carte['posterImages'][0]['url'],
                         'fanart':  carte['thumbnailImages'][0]['url'],
                         'isDir' : True,
@@ -260,8 +266,8 @@ def dictOfGenres(filtres):
         item['image'] = item['image'] or xbmcaddon.Addon().getAddonInfo('path')+'/icon.png'
         item['fanart'] = item['fanart'] or xbmcaddon.Addon().getAddonInfo('path')+'/fanart.jpg'
         #item['filtres'] = parse.getCopy(filtres)
-        item['filtres']['content']['genreId'] = item['genreId']
-        
+        item['filtres']['content']['genreId'] = item['genreId'] 
+
     return liste
 
 def dictOfMainDirs(filtres):

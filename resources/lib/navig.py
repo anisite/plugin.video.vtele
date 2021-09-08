@@ -82,6 +82,8 @@ def ajouterRepertoire(show):
     liz = xbmcgui.ListItem(nom)
 
     liz.setArt({ 'thumb' : iconimage } )
+    liz.setArt({ 'poster' : iconimage } )
+    liz.setArt({ 'fanart' : fanart } )
 
     liz.setInfo(\
         type="Video",\
@@ -90,36 +92,40 @@ def ajouterRepertoire(show):
             "plot":resume
         }\
     )
-    setFanart(liz,fanart)
+    
 
     is_it_ok = xbmcplugin.addDirectoryItem(handle=__handle__, url=entry_url, listitem=liz, isFolder=True)
 
     return is_it_ok
 
-def setFanart(liz,fanart):
-    if ADDON.getSetting('FanartEnabled') == 'true':
-        if ADDON.getSetting('FanartEmissionsEnabled') == 'true':
-            liz.setProperty('fanart_image', fanart)
-        else:
-            liz.setProperty('fanart_image', ADDON_FANART)
-
-
 def ajouterVideo(show):
     name = show['nom']
     the_url = show['url']
     iconimage = show['image']
-
     resume = show['resume'] #remove_any_html_tags(show['resume'] +'[CR][CR]' + finDisponibilite)
-    duree = show['duree']
+    duree = None
+    sourceUrl = None
+    premiere = None
+    episode = None
+    saison = None
+
+    if 'duree' in show:
+        duree = show['duree']
     fanart = show['fanart']
-    sourceUrl = show['sourceUrl']
+
+    if 'sourceUrl' in show:
+        sourceUrl = show['sourceUrl']
+
     annee = "" #show['startDate'][:4]
-    premiere = show['startDate']
-    episode = show['episodeNo']
-    saison = show['seasonNo']
+    if 'startDate' in show:
+        premiere = show['startDate']
+    if 'episodeNo' in show:
+        episode = show['episodeNo']
+    if 'seasonNo' in show:
+        saison = show['seasonNo']
     
     is_it_ok = True
-    entry_url = sys.argv[0]+"?url="+quote_plus(the_url)+"&sourceUrl="+quote_plus(sourceUrl)
+    entry_url = sys.argv[0]+"?url="+quote_plus(the_url or '')+"&sourceUrl="+quote_plus(sourceUrl or '')
 
     #if resume != '':
     #    if ADDON.getSetting('EmissionNameInPlotEnabled') == 'true':
@@ -132,7 +138,9 @@ def ajouterVideo(show):
 
     liz = xbmcgui.ListItem(remove_any_html_tags(name))
 
+    liz.setArt({ 'poster' : iconimage } )
     liz.setArt({ 'thumb' : iconimage } )
+    liz.setArt({ 'fanart' : fanart } )
 
     liz.setInfo(\
         type="Video",\
@@ -146,7 +154,6 @@ def ajouterVideo(show):
             "Season":saison}\
     )
     liz.addContextMenuItems([('Informations', 'Action(Info)')])
-    setFanart(liz,fanart)
     liz.setProperty('IsPlayable', 'true')
 
     is_it_ok = xbmcplugin.addDirectoryItem(handle=__handle__, url=entry_url, listitem=liz, isFolder=False)
