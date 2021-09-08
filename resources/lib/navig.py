@@ -32,8 +32,7 @@ except ImportError:
 ADDON = xbmcaddon.Addon()
 BUILD_NUMBER      = int(xbmc.getInfoLabel('System.BuildVersion').split('.')[0])
 ADDON_IMAGES_BASEPATH = ADDON.getAddonInfo('path')+'/resources/media/images/'
-ADDON_FANART = ADDON.getAddonInfo('path')+'/fanart.jpg'
-THEPLATFORM_CONTENT_URL = "https://edge.api.brightcove.com/playback/v1/accounts/618566855001/videos/"
+ADDON_FANART = ADDON.getAddonInfo('path')+'/resources/fanart.jpg'
 
 __handle__ = int(sys.argv[1])
 
@@ -41,12 +40,9 @@ def ajouterItemAuMenu(items):
     for item in items:
         if item['isDir'] == True:
             ajouterRepertoire(item)
-            #xbmc.executebuiltin('Container.SetViewMode(512)') # "Info-wall" view. 
             
         else:
             ajouterVideo(item)
-            #xbmc.executebuiltin('Container.SetViewMode('+str(xbmcplugin.SORT_METHOD_DATE)+')')
-            #xbmc.executebuiltin('Container.SetSortDirection(0)')
 
     if items:
         if items[0]['forceSort']  :
@@ -104,7 +100,6 @@ def ajouterVideo(show):
     iconimage = show['image']
     resume = show['resume'] #remove_any_html_tags(show['resume'] +'[CR][CR]' + finDisponibilite)
     duree = None
-    sourceUrl = None
     premiere = None
     episode = None
     saison = None
@@ -113,8 +108,7 @@ def ajouterVideo(show):
         duree = show['duree']
     fanart = show['fanart']
 
-    if 'sourceUrl' in show:
-        sourceUrl = show['sourceUrl']
+    sourceUrl = show['sourceUrl']
 
     annee = "" #show['startDate'][:4]
     if 'startDate' in show:
@@ -125,17 +119,9 @@ def ajouterVideo(show):
         saison = show['seasonNo']
     
     is_it_ok = True
-    entry_url = sys.argv[0]+"?url="+quote_plus(the_url or '')+"&sourceUrl="+quote_plus(sourceUrl or '')
-
-    #if resume != '':
-    #    if ADDON.getSetting('EmissionNameInPlotEnabled') == 'true':
-    #        resume = '[B]'+name.lstrip()+'[/B]'+'[CR]'+resume.lstrip() 
-    #else:
-    #    resume = name.lstrip()
-
-    #liz = xbmcgui.ListItem(\
-    #    remove_any_html_tags(name), iconImage=ADDON_IMAGES_BASEPATH+"default-video.png", thumbnailImage=iconimage)
-
+    entry_url = sys.argv[0]+"?url="+quote_plus(the_url)+"&sourceUrl="+quote_plus(sourceUrl)
+    print (entry_url)
+    print ("URL")
     liz = xbmcgui.ListItem(remove_any_html_tags(name))
 
     liz.setArt({ 'poster' : iconimage } )

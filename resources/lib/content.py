@@ -129,7 +129,7 @@ def loadListeSaison(filtres):
     saisons = jsonMedia['data']['contentData']['seasons']
     log(saisons)
 
-    cover = xbmcaddon.Addon().getAddonInfo('path')+'/fanart.jpg'
+    cover = xbmcaddon.Addon().getAddonInfo('path')+'/resources/fanart.jpg'
 
     filtres['content']['cover'] = cover
     filtres['content']['tvshow'] = jsonMedia['data']['contentData']['title']
@@ -157,7 +157,7 @@ def loadListeSaison(filtres):
         item['forceSort']= False
         item['nom']= item['nom']
         #item['url'] = item['url'] or None
-        item['image'] = item['image'] or xbmcaddon.Addon().getAddonInfo('path')+'/icon.png'
+        item['image'] = item['image'] or xbmcaddon.Addon().getAddonInfo('path')+'/resources/icon.png'
         item['fanart']= filtres['content']['cover'] #cover #xbmcaddon.Addon().getAddonInfo('path')+'/fanart.jpg'
         #item['filtres'] = parse.getCopy(filtres)
         item['filtres']['content']['genreId'] = item['genreId']
@@ -198,25 +198,6 @@ def dictOfGenres(filtres):
     liste = []
     
     i=0
-
-    newItem = {   'genreId': 1, 
-                'nom': '[COLOR gold][B]Noovo - En direct[/B][/COLOR]',
-                'resume': 'Regarder Noovo en direct', #getDescription(carte.find_all("a")[0]['href']),
-                'image' :  None,
-                'fanart':  None,
-                'isDir' : False,
-                'duree' : -1,
-                'sourceUrl': 'direct',
-                'startDate' : None,
-                'episodeNo' : 0,
-                'seasonNo' : 0,
-                'url' : 'direct',#correctEmissionPageURL(carte.find_all("a")[0]['href'], u(carte.get_text(strip=True))),
-                'filtres' : parse.getCopy(filtres)
-            }
-            
-    newItem['filtres']['content']['url'] = newItem['url']
-    
-    liste.append(newItem)
 
     while True:
         print(i)
@@ -263,8 +244,8 @@ def dictOfGenres(filtres):
         item['forceSort'] = False
         item['nom'] = item['nom']
         #item['url'] = item['url'] or None
-        item['image'] = item['image'] or xbmcaddon.Addon().getAddonInfo('path')+'/icon.png'
-        item['fanart'] = item['fanart'] or xbmcaddon.Addon().getAddonInfo('path')+'/fanart.jpg'
+        item['image'] = item['image'] or xbmcaddon.Addon().getAddonInfo('path')+'/resources/icon.png'
+        item['fanart'] = item['fanart'] or xbmcaddon.Addon().getAddonInfo('path')+'/resources/fanart.jpg'
         #item['filtres'] = parse.getCopy(filtres)
         item['filtres']['content']['genreId'] = item['genreId'] 
 
@@ -275,12 +256,28 @@ def dictOfMainDirs(filtres):
     liste = []
     #liste = [{'genreId': -1, 'nom': '-- EN DIRECT --', 'url': DOSSIERS_URL,'resume':'Aucune emission est en direct presentement'}]
 
+    newItem = {   'genreId': 1, 
+                'nom': '[COLOR gold][B]Noovo - En direct[/B][/COLOR]',
+                'resume': 'Regarder Noovo en direct', #getDescription(carte.find_all("a")[0]['href']),
+                'isDir' : False,
+                'duree' : -1,
+                'sourceUrl': 'direct',
+                'startDate' : None,
+                'episodeNo' : 0,
+                'seasonNo' : 0,
+                'url' : 'direct',#correctEmissionPageURL(carte.find_all("a")[0]['href'], u(carte.get_text(strip=True))),
+                'filtres' : parse.getCopy(filtres)
+            }
+            
+    newItem['filtres']['content']['url'] = newItem['url']
+    
+    liste.append(newItem)
+
     for item in liste :
-        item['isDir']= True
-        item['forceSort'] = True
-        item['nom']= unquote(item['nom'])
-        item['image']=xbmcaddon.Addon().getAddonInfo('path')+'/icon.png'
-        item['fanart']=xbmcaddon.Addon().getAddonInfo('path')+'/fanart.jpg'
+        item['forceSort'] = False
+        item['nom']= item['nom']
+        item['image']=xbmcaddon.Addon().getAddonInfo('path')+'/resources/icon.png'
+        item['fanart']=xbmcaddon.Addon().getAddonInfo('path')+'/resources/fanart.jpg'
         item['filtres']= parse.getCopy(filtres)
         item['filtres']['content']['genreId'] = item['genreId']
         item['filtres']['show']={}
