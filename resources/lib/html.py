@@ -182,7 +182,9 @@ def is_network_available(url):
         return False
 
 def get_graphql_data(toPost):
+    #log('[Noovo - DEBUG]: Requête envoyée: %s' % toPost)
     data = POST_HTML('https://www.noovo.ca/space-graphql/apq/graphql', toPost)
+    #log('[Noovo - DEBUG]: Réponse reçue: %s' % data)
     return json.loads(data)
 
 def log(msg):
