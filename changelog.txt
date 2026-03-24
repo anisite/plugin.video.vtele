@@ -1,3 +1,6 @@
+3.0.6 =======
+- Merge du fix des images merci @RicPigeon
+
 3.0.0 =======
 - Support du nouveau système de Noovo
 
