@@ -138,7 +138,9 @@ if MODE != 99:
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 if MODE != 4 and xbmcaddon.Addon().getSetting('DeleteTempFiFilesEnabled') == 'true':
-    PATH = xbmc.translatePath('special://temp').decode('utf-8')
+    PATH = xbmc.translatePath('special://temp')
+    if isinstance(PATH, bytes):
+        PATH = PATH.decode('utf-8')
     FILENAMES = next(os.walk(PATH))[2]
     for i in FILENAMES:
         if ".fi" in i:

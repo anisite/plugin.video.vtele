@@ -171,8 +171,12 @@ def jouer_video(source_url):
         json_package = json.loads(package)
         package_id = str(json_package['Items'][0]['Id'])
 
-        uri = 'https://capi.9c9media.com/destinations/noovo_hub/platforms/desktop/bond/contents/'+video_id+'/contentpackages/'+package_id+'/manifest.mpd'
+        uri = 'https://capi.9c9media.com/destinations/noovo_hub/platforms/desktop/playback/contents/'+video_id+'/contentPackages/'+package_id+'/manifest.mpd?action=reference&ssl=true&filter=fe&did=69ddab77a1556e160768ac18&mca=false&uhd=false&mcv=false&hd=true&tpt=true&mta=true&stt=false'
         
+        uri = html.get_url_txt(uri)
+        if isinstance(uri, bytes):
+            uri = uri.decode('utf-8').strip()
+
         log('URI obtenue: ' + uri)
         
         # ÉTAPE 1 : Vérifier/Installer Widevine AVANT de créer l'item
@@ -231,7 +235,7 @@ def obtenirMeilleurStream(pl):
         if re.search('#EXT-X',line):
             bandWidth=None
             try:
-                match  = re.search('BANDWIDTH=(\d+)',line)
+                match  = re.search(r'bandwidth=(\d+)',line)
                 bandWidth = int(match.group(1))
             except :
                 bandWidth=None

@@ -1,3 +1,9 @@
+3.0.7 =======
+- Mise à jour URL manifest : bond/ → playback/ avec paramètres ssl/hd/filter (nouvelle API CAPI 9c9media)
+- Correction lecture vidéo : décodage bytes→str manquant en Python 3 causait un crash silencieux avant setResolvedUrl
+- Correction regex invalide \d → \\d dans navig.py (SyntaxWarning Python 3.12+)
+- Correction compatibilité Python 3 pour xbmc.translatePath().decode()
+
 3.0.6 =======
 - Merge du fix des images merci @RicPigeon
 
